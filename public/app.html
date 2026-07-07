@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f0f13">
+<title>AI Master</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f13;--card:#1a1a22;--card2:#222230;--border:#2e2e40;
+  --n1:#58f5c4;--n1d:rgba(88,245,196,.12);
+  --n2:#ffd166;--n2d:rgba(255,209,102,.12);
+  --n3:#ff8fab;--n4:#b97aff;--n5:#5bb8ff;
+  --live:#ff8c42;--tx:#f0f0f8;--sub:#8888aa;
+  --f:'Nunito',sans-serif;--th:68px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:var(--f);color:var(--tx);font-size:16px;}
+#app{height:100vh;display:flex;flex-direction:column;}
+.screen{display:none;flex:1;overflow-y:auto;flex-direction:column;padding-bottom:calc(var(--th) + env(safe-area-inset-bottom) + 24px);}
+.screen.on{display:flex;}
+.screen::-webkit-scrollbar{display:none;}
+
+/* AUTH */
+#sc-auth{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;overflow-y:auto;background:var(--bg);}
+#sc-auth.on{display:flex;}
+.auth-logo{font-size:52px;margin-bottom:14px;}
+.auth-h{font-size:26px;font-weight:900;margin-bottom:8px;text-align:center;}
+.auth-s{font-size:14px;color:var(--sub);text-align:center;line-height:1.6;margin-bottom:28px;}
+.auth-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:24px 20px;width:100%;max-width:380px;}
+.a-lbl{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--sub);margin-bottom:7px;}
+.a-inp{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:14px 15px;color:var(--tx);font-family:var(--f);font-size:16px;outline:none;margin-bottom:13px;transition:border-color .2s;}
+.a-inp:focus{border-color:var(--n1);}
+.a-inp::placeholder{color:var(--sub);}
+.a-btn{width:100%;padding:15px;border-radius:13px;border:none;font-family:var(--f);font-size:16px;font-weight:800;cursor:pointer;transition:transform .18s;margin-bottom:11px;display:block;}
+.a-btn:active{transform:scale(.97);}
+.a-btn.pri{background:var(--n1);color:#051a12;}
+.a-btn.ghost{background:var(--card2);color:var(--sub);border:2px solid var(--border);}
+.a-div{text-align:center;font-size:13px;color:var(--sub);margin:2px 0 13px;}
+.a-sw{text-align:center;font-size:14px;color:var(--sub);margin-top:14px;}
+.a-sw span{color:var(--n1);font-weight:800;cursor:pointer;}
+.a-err{background:rgba(255,143,171,.12);border:1.5px solid rgba(255,143,171,.3);border-radius:10px;padding:10px 13px;font-size:13px;color:var(--n3);margin-bottom:12px;display:none;}
+.a-err.on{display:block;}
+
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:calc(var(--th) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#1a1a22;border-top:2px solid #2e2e40;display:flex;align-items:stretch;z-index:9999;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:transparent;color:var(--sub);font-family:var(--f);padding:8px 0;}
+.tab.on{color:var(--tx);}
+.tab-ico{font-size:22px;}
+.tab.on .tab-ico{transform:scale(1.1);}
+.tab-lbl{font-size:10px;font-weight:800;letter-spacing:.04em;}
+
+/* TOP BAR */
+.top-bar{position:sticky;top:0;z-index:10;background:#0f0f13;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.bk{width:40px;height:40px;border-radius:12px;background:var(--card2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;color:var(--tx);}
+.bk:active{transform:scale(.9);}
+.tbi h2{font-size:16px;font-weight:800;line-height:1.2;}
+.tbi p{font-size:12px;color:var(--sub);margin-top:2px;}
+
+/* COMMON */
+.w{padding:18px 16px;}
+.sh{font-size:12px;font-weight:900;color:var(--sub);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.btn{width:100%;padding:15px;border-radius:14px;border:none;font-family:var(--f);font-size:16px;font-weight:800;cursor:pointer;transition:transform .18s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:active{transform:scale(.97);}
+.btn.pri{color:#0a0a0a;}
+.btn.ghost{background:var(--card2);color:var(--sub);border:2px solid var(--border);}
+
+/* HOME */
+.hero{background:linear-gradient(135deg,var(--card2),var(--card));border:1.5px solid var(--border);border-radius:22px;padding:22px 20px;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--n1),var(--n2),var(--n3),var(--n4),var(--n5));}
+.hero h1{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:8px;}
+.hero p{font-size:14px;color:var(--sub);line-height:1.6;}
+.hero-u{font-size:13px;font-weight:700;color:var(--n1);margin-bottom:10px;}
+.pb-w{margin-top:14px;}
+.pb-r{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);font-weight:700;margin-bottom:5px;}
+.pb-t{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.pb-f{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--n1),var(--n5));transition:width .6s ease;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;}
+.sv{font-size:22px;font-weight:900;}
+.sl{font-size:10px;color:var(--sub);font-weight:700;margin-top:2px;}
+.next-btn{background:var(--n1);color:#051a12;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .18s;margin-bottom:22px;border:none;width:100%;text-align:left;font-family:var(--f);box-shadow:0 4px 20px rgba(88,245,196,.28);}
+.next-btn:active{transform:scale(.97);}
+.next-ico{font-size:26px;flex-shrink:0;}
+.nh h3{font-size:16px;font-weight:900;color:#051a12;}
+.nh p{font-size:12px;color:rgba(5,26,18,.6);font-weight:700;margin-top:2px;}
+.na{margin-left:auto;font-size:20px;font-weight:900;color:rgba(5,26,18,.4);}
+.lv-row{background:var(--card);border:2px solid var(--border);border-radius:18px;padding:15px 14px;margin-bottom:10px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .18s;}
+.lv-row:active{transform:scale(.97);}
+.lv-row.locked{opacity:.4;cursor:not-allowed;}
+.lv-ico{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.lv-info{flex:1;min-width:0;}
+.lv-tag{font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.lv-name{font-size:16px;font-weight:900;margin-bottom:2px;}
+.lv-dur{font-size:11px;color:var(--sub);margin-bottom:5px;}
+.lv-pb{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.lv-pf{height:100%;border-radius:3px;}
+.lv-pr{font-size:13px;font-weight:900;flex-shrink:0;}
+
+/* PATH */
+.plh{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:transform .18s;}
+.plh:active{transform:scale(.97);}
+.plh-b{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.plh-n{font-size:17px;font-weight:900;}
+.plh-s{font-size:11px;color:var(--sub);font-weight:600;margin-top:2px;}
+.plh-pb{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:5px;}
+.plh-pf{height:100%;border-radius:2px;}
+.nodes{padding:0 20px 6px;display:flex;flex-direction:column;align-items:flex-start;}
+.node-col{display:flex;flex-direction:column;align-items:center;}
+.pnode{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:transform .18s;border:3px solid transparent;position:relative;flex-shrink:0;box-shadow:0 3px 12px rgba(0,0,0,.4);}
+.pnode:active{transform:scale(.9);}
+.pnode.locked{opacity:.3;cursor:not-allowed;}
+.pnode.cur{animation:ng 2s ease-in-out infinite;}
+@keyframes ng{0%,100%{box-shadow:0 3px 12px rgba(0,0,0,.4);}50%{box-shadow:0 3px 20px var(--gc,rgba(88,245,196,.5));}}
+.node-lbl{font-size:11px;font-weight:700;color:var(--sub);text-align:center;max-width:80px;line-height:1.3;margin-top:5px;}
+.ncheck{position:absolute;top:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--n1);color:#051a12;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);}
+.conn{width:3px;height:20px;background:var(--border);border-radius:2px;margin:3px 0;}
+.conn.done{background:var(--n1);}
+
+/* LEVEL */
+.mp-box{background:var(--card);border-radius:18px;padding:18px;margin-bottom:18px;border:2px solid;}
+.mp-lbl{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.mp-title{font-size:17px;font-weight:900;margin-bottom:4px;}
+.mp-desc{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:12px;}
+.mi{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .18s;}
+.mi:active{transform:scale(.97);}
+.mi.locked{opacity:.35;cursor:not-allowed;}
+.mi-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.mi-t{font-size:15px;font-weight:800;margin-bottom:2px;}
+.mi-s{font-size:11px;color:var(--sub);}
+.mi-ck{font-size:13px;font-weight:900;margin-left:auto;flex-shrink:0;}
+
+/* LESSON */
+.sdots{display:flex;gap:6px;margin-bottom:22px;}
+.sdot{flex:1;height:7px;border-radius:4px;background:var(--border);transition:all .3s;}
+.sdot.done{background:var(--n1);}
+.sdot.active{background:var(--n1);box-shadow:0 0 8px var(--n1);}
+.th-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:20px 18px;margin-bottom:16px;}
+.th-tag{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:13px;}
+.th-title{font-size:21px;font-weight:900;line-height:1.25;margin-bottom:13px;}
+.th-body{font-size:15px;color:var(--sub);line-height:1.8;}
+.th-body p{margin-bottom:12px;}
+.th-body p:last-child{margin-bottom:0;}
+.th-body strong{color:var(--tx);font-weight:800;}
+.th-body h4{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--tx);margin:15px 0 7px;}
+.th-body ul{padding-left:20px;margin-bottom:12px;}
+.th-body li{margin-bottom:6px;}
+.th-body code{font-size:12px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--n5);font-family:monospace;word-break:break-all;}
+.th-body a{color:var(--n1);font-weight:700;text-decoration:none;border-bottom:1px solid rgba(88,245,196,.3);}
+.callout{border-radius:0 14px 14px 0;padding:13px 15px;margin:13px 0;border-left:3px solid;}
+.cl-t{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+.cl-b{font-size:14px;color:var(--sub);line-height:1.65;}
+.cl-b strong{color:var(--tx);font-weight:800;}
+.cl-b a{color:var(--n1);font-weight:700;text-decoration:none;}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;}
+.mc{background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:13px;}
+.mc-i{font-size:20px;margin-bottom:7px;}
+.mc-t{font-size:14px;font-weight:800;margin-bottom:3px;}
+.mc-d{font-size:12px;color:var(--sub);line-height:1.5;}
+.mc-d a{color:var(--n1);font-size:11px;font-weight:700;text-decoration:none;}
+.cb{background:#080810;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin:13px 0;}
+.cb-h{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--card2);font-size:11px;font-weight:700;color:var(--sub);}
+.cb-b{padding:13px 14px;font-family:monospace;font-size:12px;line-height:1.7;color:#9090b8;overflow-x:auto;white-space:pre;}
+.kw{color:#ff8fab;}.st{color:#58f5c4;}.cm{color:#5a5a78;font-style:italic;}.fn{color:#5bb8ff;}.nm{color:#ffd166;}
+.paper{background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:15px;margin:13px 0;}
+.paper-m{font-size:11px;color:var(--sub);font-weight:700;margin-bottom:5px;}
+.paper-t{font-size:15px;font-weight:800;margin-bottom:5px;}
+.paper-a{font-size:13px;color:var(--sub);line-height:1.6;}
+.paper-w{font-size:12px;font-weight:700;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);}
+.lbtn{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;padding:8px 13px;font-size:12px;font-weight:700;color:var(--n1);text-decoration:none;margin:4px 4px 4px 0;}
+.lbtn:active{opacity:.7;}
+.ex-card{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:18px;margin-bottom:16px;}
+.ex-lbl{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--n3);margin-bottom:11px;}
+.ex-task{font-size:15px;color:var(--tx);line-height:1.8;white-space:pre-line;}
+.eval-box{background:var(--card2);border:2px solid var(--border);border-radius:20px;padding:17px;margin-bottom:16px;}
+.eval-lbl{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:11px;}
+.eval-ta{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:13px 15px;color:var(--tx);font-family:var(--f);font-size:15px;resize:none;min-height:100px;max-height:240px;outline:none;transition:border-color .2s;line-height:1.65;overflow-y:auto;}
+.eval-ta::placeholder{color:var(--sub);}
+.eval-btns{display:flex;gap:9px;margin-top:11px;}
+.ev-btn{flex:1;padding:14px;border-radius:14px;border:none;font-family:var(--f);font-size:15px;font-weight:800;cursor:pointer;transition:transform .18s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.ev-btn:active{transform:scale(.96);}
+.ev-btn:disabled{opacity:.4;cursor:not-allowed;}
+.hint-btn{width:50px;height:50px;border-radius:14px;background:var(--card);border:2px solid var(--border);color:var(--sub);font-size:20px;cursor:pointer;transition:transform .18s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hint-btn:active{transform:scale(.9);}
+.ai-resp{margin-top:13px;padding:15px;background:var(--bg);border-radius:14px;font-size:14px;line-height:1.8;color:var(--sub);display:none;border:1.5px solid var(--border);}
+.ai-resp.on{display:block;}
+.ai-resp strong{color:var(--tx);font-weight:700;}
+.step-nav{display:flex;gap:12px;padding-top:8px;margin-bottom:8px;}
+.nav-p{width:52px;height:52px;border-radius:14px;background:var(--card);border:2px solid var(--border);color:var(--sub);font-size:22px;cursor:pointer;transition:transform .18s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.nav-p:active{transform:scale(.9);}
+.nav-n{flex:1;height:52px;border-radius:14px;border:none;font-family:var(--f);font-size:17px;font-weight:900;cursor:pointer;transition:transform .18s;color:#0a0a0a;}
+.nav-n:active{transform:scale(.97);}
+.done-scr{padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;}
+.done-e{font-size:68px;margin-bottom:16px;animation:pop .4s ease both;}
+@keyframes pop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.done-t{font-size:26px;font-weight:900;margin-bottom:8px;}
+.done-s{font-size:15px;color:var(--sub);line-height:1.6;margin-bottom:20px;max-width:300px;}
+.xpb{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:20px;font-size:20px;font-weight:900;margin-bottom:24px;}
+.done-btn{width:100%;max-width:300px;padding:15px;border-radius:14px;border:none;font-family:var(--f);font-size:16px;font-weight:800;cursor:pointer;transition:transform .18s;margin-bottom:10px;}
+.done-btn:active{transform:scale(.97);}
+
+/* LIVE */
+.live-h{font-size:24px;font-weight:900;margin-bottom:6px;}
+.live-s{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:16px;}
+.lcard{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:17px;margin-bottom:11px;cursor:pointer;transition:transform .18s;}
+.lcard:active{transform:scale(.97);}
+.lc-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px;}
+.lc-h h3{font-size:16px;font-weight:800;line-height:1.3;flex:1;}
+.ltag{font-size:10px;font-weight:900;padding:4px 9px;border-radius:8px;white-space:nowrap;flex-shrink:0;}
+.lc-b{font-size:14px;color:var(--sub);line-height:1.6;}
+.lc-d{font-size:12px;color:var(--sub);margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-weight:600;}
+
+/* PROFILE */
+.ph{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:24px 20px;text-align:center;margin-bottom:18px;}
+.p-av{font-size:54px;margin-bottom:12px;}
+.p-n{font-size:22px;font-weight:900;margin-bottom:4px;}
+.p-l{font-size:14px;font-weight:700;}
+.p-e{font-size:12px;color:var(--sub);margin-top:4px;}
+.p-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+.ps{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;text-align:center;}
+.ps-v{font-size:26px;font-weight:900;}
+.ps-l{font-size:11px;color:var(--sub);font-weight:700;margin-top:3px;}
+.p-row{background:var(--card);border:1.5px solid var(--border);border-radius:15px;padding:16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .18s;margin-bottom:10px;}
+.p-row:active{transform:scale(.97);}
+.p-ri{font-size:24px;flex-shrink:0;}
+.p-rh{font-size:16px;font-weight:800;margin-bottom:2px;}
+.p-rs{font-size:13px;color:var(--sub);}
+.p-ra{margin-left:auto;font-size:20px;color:var(--sub);}
+.code-box{background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-top:10px;font-family:monospace;font-size:12px;color:var(--n1);word-break:break-all;line-height:1.6;display:none;}
+.code-box.on{display:block;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10000;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-bg.on{opacity:1;pointer-events:all;}
+.modal-sh{background:var(--card);border-radius:24px 24px 0 0;padding:26px 20px calc(20px + env(safe-area-inset-bottom));width:100%;animation:shu .3s ease;}
+@keyframes shu{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-t{font-size:20px;font-weight:900;margin-bottom:7px;}
+.modal-s{font-size:14px;color:var(--sub);margin-bottom:18px;line-height:1.5;}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px;}
+.tb{padding:13px;border-radius:12px;border:2px solid var(--border);background:var(--card2);color:var(--tx);font-family:var(--f);font-size:15px;font-weight:700;cursor:pointer;text-align:center;transition:all .18s;}
+.tb.sel{border-color:var(--n1);background:var(--n1d);color:var(--n1);}
+.modal-btns{display:flex;gap:10px;}
+.m-cancel{flex:1;padding:15px;border-radius:13px;background:var(--card2);border:2px solid var(--border);color:var(--sub);font-family:var(--f);font-size:16px;font-weight:700;cursor:pointer;}
+.m-ok{flex:2;padding:15px;border-radius:13px;background:var(--n1);border:none;color:#051a12;font-family:var(--f);font-size:16px;font-weight:900;cursor:pointer;}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:12px 20px;font-size:15px;font-weight:700;z-index:20000;animation:tin .3s ease;box-shadow:0 8px 28px rgba(0,0,0,.5);max-width:90vw;text-align:center;}
+@keyframes tin{from{opacity:0;top:8px;}to{opacity:1;top:20px;}}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--tx);border-radius:50%;animation:rot .7s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg);}}
+.ldc{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:14px;padding:20px;}
+.ldc p{font-size:14px;color:var(--sub);font-weight:700;text-align:center;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sc-auth" class="on">
+    <div class="auth-logo">&#x1F916;</div>
+    <div class="auth-h">Bienvenida a AI Master</div>
+    <div class="auth-s">Tu programa de aprendizaje de IA.<br>Crea una cuenta para guardar tu progreso.</div>
+    <div class="auth-card">
+      <div id="a-err" class="a-err"></div>
+      <div id="f-login">
+        <div class="a-lbl">Correo electr&#xF3;nico</div>
+        <input class="a-inp" type="email" id="l-email" placeholder="tu@email.com" autocomplete="email">
+        <div class="a-lbl">Contrase&#xF1;a</div>
+        <input class="a-inp" type="password" id="l-pass" placeholder="Tu contrase&#xF1;a" autocomplete="current-password">
+        <button class="a-btn pri" onclick="doLogin()">Iniciar sesi&#xF3;n</button>
+        <div class="a-div">&#x2014; o &#x2014;</div>
+        <button class="a-btn ghost" onclick="guestMode()">Continuar sin cuenta</button>
+        <div class="a-sw">&#xBF;No tienes cuenta? <span onclick="showReg()">Crear cuenta</span></div>
+      </div>
+      <div id="f-reg" style="display:none">
+        <div class="a-lbl">Tu nombre</div>
+        <input class="a-inp" type="text" id="r-name" placeholder="Laura" autocomplete="name">
+        <div class="a-lbl">Correo electr&#xF3;nico</div>
+        <input class="a-inp" type="email" id="r-email" placeholder="tu@email.com" autocomplete="email">
+        <div class="a-lbl">Contrase&#xF1;a (m&#xED;n. 6 caracteres)</div>
+        <input class="a-inp" type="password" id="r-pass" placeholder="Elige una contrase&#xF1;a" autocomplete="new-password">
+        <button class="a-btn pri" onclick="doReg()">Crear cuenta</button>
+        <div class="a-div">&#x2014; o &#x2014;</div>
+        <button class="a-btn ghost" onclick="guestMode()">Continuar sin cuenta</button>
+        <div class="a-sw">&#xBF;Ya tienes cuenta? <span onclick="showLogin()">Iniciar sesi&#xF3;n</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="sc-home"></div>
+  <div class="screen" id="sc-path"></div>
+  <div class="screen" id="sc-live">
+    <div class="w">
+      <div class="ldc">
+        <div class="spin" style="width:26px;height:26px;border-width:3px;"></div>
+        <p>Abre Novedades para cargar contenido en tiempo real</p>
+      </div>
+    </div>
+  </div>
+  <div class="screen" id="sc-profile"></div>
+  <div class="screen" id="sc-lesson"></div>
+  <div class="screen" id="sc-level"></div>
+
+  <div class="tab-bar" id="tab-bar" style="display:none;">
+    <button class="tab on" id="tab-home" onclick="goTab('home')">
+      <div class="tab-ico">&#x1F3E0;</div><div class="tab-lbl">INICIO</div>
+    </button>
+    <button class="tab" id="tab-path" onclick="goTab('path')">
+      <div class="tab-ico">&#x1F5FA;&#xFE0F;</div><div class="tab-lbl">RUTA</div>
+    </button>
+    <button class="tab" id="tab-live" onclick="goTab('live')">
+      <div class="tab-ico">&#x26A1;</div><div class="tab-lbl">NOVEDADES</div>
+    </button>
+    <button class="tab" id="tab-profile" onclick="goTab('profile')">
+      <div class="tab-ico">&#x1F464;</div><div class="tab-lbl">PERFIL</div>
+    </button>
+  </div>
+</div>
+
+<div class="modal-bg" id="rem-modal">
+  <div class="modal-sh">
+    <div class="modal-t">&#x23F0; Recordatorio diario</div>
+    <div class="modal-s">Elige tu hora de estudio. La consistencia lo es todo.</div>
+    <div class="tg" id="tg"></div>
+    <div class="modal-btns">
+      <button class="m-cancel" onclick="closeModal('rem-modal')">Cancelar</button>
+      <button class="m-ok" onclick="saveRem()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="restore-modal">
+  <div class="modal-sh">
+    <div class="modal-t">&#x267B;&#xFE0F; Restaurar progreso</div>
+    <div class="modal-s">Pega tu c&#xF3;digo de respaldo para recuperar tu progreso.</div>
+    <textarea class="eval-ta" id="restore-code" placeholder="Pega tu c&#xF3;digo aqu&#xED;..." rows="3" style="margin-bottom:14px;width:100%;"></textarea>
+    <div class="modal-btns">
+      <button class="m-cancel" onclick="closeModal('restore-modal')">Cancelar</button>
+      <button class="m-ok" onclick="doRestore()">Restaurar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+var LV = [
+{id:'n1',num:'N1',name:'Explorador',emoji:'\u{1F331}',color:'#58f5c4',bg:'rgba(88,245,196,.1)',dur:'3\u20134 sem \u00b7 10 min/d\u00eda',tagline:'De cero a usuario consciente',desc:'Entiende qu\u00e9 es la IA, c\u00f3mo usarla y por qu\u00e9 cambia el mundo.',unlock:null,unlockPct:80,
+mp:{id:'mp1',title:'Automatiza una tarea real',desc:'Elige algo que haces 1x/semana y ah\u00f3rrate el 80% del tiempo con IA.'},
+mods:[
+{id:'m1a',icon:'\u{1F331}',title:'\u00bfQu\u00e9 es la IA?',lessons:[
+{id:'l1a1',title:'La idea central, sin jerga',mins:10,steps:[
+{T:true,tag:'Concepto',title:'La IA que genera \u2014 sin misterio',body:'<p>La <strong>IA Generativa</strong> crea cosas nuevas: texto, im\u00e1genes, c\u00f3digo. No busca en internet \u2014 <em>genera</em> a partir de patrones aprendidos.</p><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">La mejor analog\u00eda</div><div class="cl-b">Imagina leer 1 mill\u00f3n de libros de cocina. Alguien dice "inventame una receta con pollo y mango". No buscas \u2014 <strong>generas</strong> algo nuevo. Eso hace un LLM.</div></div><div class="mgrid"><div class="mc"><div class="mc-i">\u{1F4DD}</div><div class="mc-t">LLMs (Texto)</div><div class="mc-d">Claude, ChatGPT, Gemini. Los m\u00e1s vers\u00e1tiles.</div></div><div class="mc"><div class="mc-i">\u{1F3A8}</div><div class="mc-t">Imagen</div><div class="mc-d">DALL-E, Midjourney.</div></div><div class="mc"><div class="mc-i">\u{1F3B5}</div><div class="mc-t">Audio</div><div class="mc-d">Suno, ElevenLabs.</div></div><div class="mc"><div class="mc-i">\u{1F3AC}</div><div class="mc-t">Video</div><div class="mc-d">Sora, Runway.</div></div></div>'},
+{P:true,tag:'Ejercicio',title:'Tu primera conversaci\u00f3n consciente',
+task:'Abre Claude.ai o ChatGPT (gratis).\n\nPASO 1: Escribe algo vago:\n"ay\u00fadame con mi trabajo"\n\u00bfFue \u00fatil?\n\nPASO 2: Escribe algo espec\u00edfico:\n"Soy [tu rol] y necesito [tarea concreta] para [prop\u00f3sito]. El resultado debe ser [formato]."\n\u00bfQu\u00e9 cambi\u00f3?\n\nPASO 3: Env\u00eda la misma pregunta dos veces en conversaciones separadas. \u00bfRespuestas id\u00e9nticas?',
+ph:'\u2022 Qu\u00e9 pas\u00f3 con el prompt vago\n\u2022 Qu\u00e9 mejor\u00f3 con el espec\u00edfico\n\u2022 \u00bfMismas respuestas? \u00bfPor qu\u00e9?\n\u2022 Tu insight principal',
+ev:'Eval\u00faa este primer ejercicio. Sin experiencia previa.\n1. \u00bfEjecut\u00f3 los 3 experimentos?\n2. \u00bfHay pensamiento propio?\n3. \u00bfLa insight demuestra aprendizaje genuino?\nS\u00e9 generosa. En espa\u00f1ol.'}
+]},
+{id:'l1a2',title:'C\u00f3mo aprende una IA \u2014 sin matem\u00e1ticas',mins:10,steps:[
+{T:true,tag:'Fundamento',title:'El entrenamiento: de texto crudo a asistente',body:'<p>Para entender por qu\u00e9 la IA hace lo que hace \u2014 y por qu\u00e9 a veces falla \u2014 necesitas entender c\u00f3mo aprendi\u00f3.</p><h4>Fase 1: Leer todo internet</h4><p>Un LLM ley\u00f3 aproximadamente <strong>1-10 trillones de palabras</strong>. El \u00fanico objetivo: predecir la siguiente palabra. Simple en concepto, colosal en escala.</p><h4>Fase 2: Aprender a seguir instrucciones</h4><p>Con miles de ejemplos de (pregunta, respuesta ideal) hechos por humanos, el modelo aprendi\u00f3 a ser \u00fatil.</p><h4>Fase 3: Alinearse con preferencias humanas</h4><p>Humanos calificaron respuestas. El modelo aprendi\u00f3 a generar lo que los humanos prefieren. As\u00ed Anthropic entren\u00f3 a Claude.</p><div class="callout" style="border-color:#ffd166;background:rgba(255,209,102,.06)"><div class="cl-t" style="color:#ffd166">Por qu\u00e9 a veces la IA se equivoca</div><div class="cl-b"><strong>Alucinaciones:</strong> El modelo predice el texto m\u00e1s probable, no el m\u00e1s verdadero. Puede generar informaci\u00f3n incorrecta con total confianza.<br><br><strong>Fecha de corte:</strong> No sabe nada de lo que pas\u00f3 despu\u00e9s de su entrenamiento.<br><br><strong>Sin memoria:</strong> Cada conversaci\u00f3n empieza desde cero.</div></div>'},
+{P:true,tag:'Reflexi\u00f3n',title:'Conecta el aprendizaje con tu trabajo',
+task:'Responde estas 3 preguntas con honestidad:\n\n1. \u00bfEn qu\u00e9 tarea de tu trabajo usar\u00edas IA esta semana? (S\u00e9 espec\u00edfica: no "redactar emails" sino "el email de status semanal para mi cliente en fintech")\n\n2. \u00bfEn qu\u00e9 tarea NO confiar\u00edas en la IA sin revisar su output? \u00bfPor qu\u00e9?\n\n3. \u00bfC\u00f3mo manejar\u00edas el problema de que la IA no tiene memoria entre conversaciones?',
+ph:'\u2022 La tarea espec\u00edfica donde usar\u00edas IA\n\u2022 La tarea donde NO confiar\u00edas y por qu\u00e9\n\u2022 Tu estrategia para el problema de memoria',
+ev:'Eval\u00faa esta reflexi\u00f3n aplicada.\n1. \u00bfLa tarea espec\u00edfica es realmente espec\u00edfica?\n2. \u00bfEl an\u00e1lisis de cu\u00e1ndo NO usar IA muestra pensamiento cr\u00edtico?\n3. \u00bfLa estrategia para la memoria es pr\u00e1ctica?\nRefuerza el pensamiento cr\u00edtico sobre limitaciones. En espa\u00f1ol.'}
+]}
+]},
+{id:'m1b',icon:'\u{1F5E3}\uFE0F',title:'Hablarle a la IA',lessons:[
+{id:'l1b1',title:'Framework RCTF b\u00e1sico',mins:11,steps:[
+{T:true,tag:'T\u00e9cnica',title:'El mismo modelo, resultados completamente distintos',body:'<p>La calidad del output depende <strong>80% de c\u00f3mo le hablas</strong>.</p><h4>Framework RCTF</h4><p><strong>R \u2014 Rol:</strong> "Eres un experto en..." activa contexto espec\u00edfico.</p><p><strong>C \u2014 Contexto:</strong> Situaci\u00f3n, para qui\u00e9n, restricciones.</p><p><strong>T \u2014 Tarea:</strong> Verbo espec\u00edfico: "Analiza", "redacta", "compara". Nunca solo "ay\u00fadame".</p><p><strong>F \u2014 Formato:</strong> Tabla, bullets, email, m\u00e1ximo N palabras.</p><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">Antes vs Despu\u00e9s</div><div class="cl-b"><strong>Antes:</strong> "Ay\u00fadame con un email dif\u00edcil"<br><br><strong>Despu\u00e9s:</strong> "Eres experto en comunicaci\u00f3n. Contexto: soy PM, debo decirle a un cliente que el proyecto se retrasa. Tarea: redacta email que mantenga la confianza. Formato: m\u00e1x 120 palabras, tono emp\u00e1tico."</div></div>'},
+{P:true,tag:'Ejercicio',title:'Reescribe un prompt real con RCTF',
+task:'Toma UNA tarea que hagas regularmente en tu trabajo.\n\nVERSI\u00d3N B\u00c1SICA:\nC\u00f3mo la pedir\u00edas normalmente\n\nVERSI\u00d3N RCTF:\nRol + Contexto + Tarea + Formato completos\n\nPrueba AMBAS en Claude y compara.',
+ph:'\u2022 Tu tarea elegida\n\u2022 Versi\u00f3n b\u00e1sica\n\u2022 Versi\u00f3n RCTF\n\u2022 Diferencia en los resultados',
+ev:'Eval\u00faa este ejercicio de RCTF.\n1. \u00bfLa versi\u00f3n RCTF incluye los 4 elementos?\n2. \u00bfProb\u00f3 ambas con resultados reales?\n3. \u00bfEvalug\u00f3 la diferencia objetivamente?\nEn espa\u00f1ol.'}
+]},
+{id:'l1b2',title:'Prompts avanzados: las 5 t\u00e9cnicas',mins:12,steps:[
+{T:true,tag:'T\u00e9cnica',title:'M\u00e1s all\u00e1 de RCTF',body:'<p>Estas t\u00e9cnicas tienen respaldo cient\u00edfico y marcan la diferencia.</p><h4>1. Chain-of-Thought</h4><p>Agrega "piensa paso a paso" \u2014 mejora el razonamiento hasta un 40%.</p><h4>2. Self-Critique</h4><p>Agrega al final: "Critica tu borrador y mejora la respuesta."</p><h4>3. Personas espec\u00edficas</h4><p>"Eres consultora senior de McKinsey especializada en IA" activa un contexto muy diferente a "eres experta".</p><h4>4. Few-Shot</h4><p>Muestra un ejemplo: "Quiero respuestas como esta: [ejemplo]. Ahora genera [tu pedido]."</p><h4>5. Restricciones expl\u00edcitas</h4><p>Dile qu\u00e9 NO hacer: "Sin bullet points", "m\u00e1ximo 3 opciones". Las restricciones claras mejoran la calidad.</p>'},
+{P:true,tag:'Ejercicio',title:'Construye tu prompt definitivo',
+task:'Elige UNA tarea semanal de tu trabajo.\n\nConstruye el prompt en 4 versiones:\n\nV1: RCTF b\u00e1sico\nV2: + "piensa paso a paso"\nV3: + self-critique al final\nV4: + 1 ejemplo concreto del output\n\nPrueba V1 y V4 en Claude. Compara.\n\nEste prompt V4 ser\u00e1 tu primera herramienta real de IA.',
+ph:'\u2022 La tarea elegida\n\u2022 V1 (RCTF b\u00e1sico)\n\u2022 V4 (todas las t\u00e9cnicas)\n\u2022 Diferencia entre V1 y V4\n\u2022 \u00bfLo usar\u00edas en tu trabajo esta semana?',
+ev:'Eval\u00faa este ejercicio.\n1. \u00bfLa tarea es real y espec\u00edfica?\n2. \u00bfLa V4 incorpora las t\u00e9cnicas realmente?\n3. \u00bfEjecut\u00f3 V1 y V4 con comparaci\u00f3n real?\n4. \u00bfLo usar\u00eda ma\u00f1ana? Si la respuesta es vaga, el prompt no es suficientemente pr\u00e1ctico.\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m1c',icon:'\u{1F5FA}\uFE0F',title:'Mapa de modelos',lessons:[
+{id:'l1c1',title:'GPT, Claude, Gemini, Llama',mins:10,steps:[
+{T:true,tag:'Panorama',title:'No hay un modelo mejor \u2014 hay el correcto para cada caso',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u{1F7E2}</div><div class="mc-t">GPT-4o</div><div class="mc-d">C\u00f3digo, plugins. <a href="https://chat.openai.com" target="_blank" rel="noopener noreferrer" class="lbtn">Abrir \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F7E3}</div><div class="mc-t">Claude</div><div class="mc-d">Docs largos, instrucciones complejas. <a href="https://claude.ai" target="_blank" rel="noopener noreferrer" class="lbtn">Abrir \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F535}</div><div class="mc-t">Gemini</div><div class="mc-d">B\u00fasqueda web nativa. <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" class="lbtn">Abrir \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F7E0}</div><div class="mc-t">Llama</div><div class="mc-d">Open source, privacidad total.</div></div></div><div class="callout" style="border-color:#ffd166;background:rgba(255,209,102,.06)"><div class="cl-t" style="color:#ffd166">Regla r\u00e1pida</div><div class="cl-b">Doc largo \u2192 Claude. C\u00f3digo \u2192 ChatGPT. Research actual \u2192 Gemini. Privacidad \u2192 Llama local.</div></div>'},
+{P:true,tag:'Experimento',title:'Compara dos modelos con un caso real',
+task:'Env\u00eda el MISMO prompt a Claude Y ChatGPT.\n\nUsa algo de tu trabajo actual:\n"Soy [tu rol]. Ay\u00fadame a preparar los puntos clave para [reuni\u00f3n o tarea real pr\u00f3xima]."\n\nAdapta y ejecuta en ambos.',
+ph:'\u2022 El prompt que usaste\n\u2022 Respuesta de Claude (resumen)\n\u2022 Respuesta de ChatGPT (resumen)\n\u2022 \u00bfCu\u00e1l fue m\u00e1s \u00fatil y por qu\u00e9?\n\u2022 \u00bfCu\u00e1ndo usar\u00edas cada uno?',
+ev:'Eval\u00faa este benchmark.\n1. \u00bfUs\u00f3 ambos modelos realmente?\n2. \u00bfLa comparaci\u00f3n va m\u00e1s all\u00e1 de superficial?\n3. \u00bfLa conclusi\u00f3n muestra criterio?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m1d',icon:'\u{1F4BC}',title:'IA en tu trabajo',lessons:[
+{id:'l1d1',title:'Los usos de mayor ROI para profesionales',mins:10,steps:[
+{T:true,tag:'Aplicaci\u00f3n',title:'De la teor\u00eda a tu trabajo esta semana',body:'<p>Estos son los usos de IA con mayor retorno para profesionales en roles como PM, consultor\u00eda y liderazgo.</p><div class="mgrid"><div class="mc"><div class="mc-i">\u{1F4E7}</div><div class="mc-t">Comunicaci\u00f3n ejecutiva</div><div class="mc-d">Emails dif\u00edciles, status reports. Ahorra 30-60 min/d\u00eda.</div></div><div class="mc"><div class="mc-i">\u{1F4CA}</div><div class="mc-t">An\u00e1lisis de documentos</div><div class="mc-d">Resumir reportes, contratos, feedback. Horas \u2192 minutos.</div></div><div class="mc"><div class="mc-i">\u{1F4A1}</div><div class="mc-t">Brainstorming</div><div class="mc-d">Generar opciones, anticipar objeciones.</div></div><div class="mc"><div class="mc-i">\u{1F4CB}</div><div class="mc-t">Preparaci\u00f3n de reuniones</div><div class="mc-d">Agenda, preguntas clave, notas post-reuni\u00f3n.</div></div><div class="mc"><div class="mc-i">\u{1F50D}</div><div class="mc-t">Research r\u00e1pido</div><div class="mc-d">Entender un sector, comparar competidores.</div></div><div class="mc"><div class="mc-i">\u270D\uFE0F</div><div class="mc-t">Primer borrador</div><div class="mc-d">La IA hace el 80%, t\u00fa refinas el 20%.</div></div></div><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">La regla del 80/20</div><div class="cl-b">La IA es mejor para el <strong>primer borrador r\u00e1pido</strong>. T\u00fa aportas el juicio, el contexto pol\u00edtico y la relaci\u00f3n con el cliente. Nunca env\u00edes el output de IA sin revisi\u00f3n.</div></div>'},
+{P:true,tag:'Mini-proyecto',title:'Tu primera semana con IA',
+task:'PASO 1: Identifica 3 tareas de tu trabajo esta semana que podr\u00edas delegar parcialmente a la IA. S\u00e9 espec\u00edfica.\n\nPASO 2: Para cada tarea, escribe el prompt RCTF que usar\u00edas.\n\nPASO 3: Ejecuta UNA de las 3 tareas ahora mismo con Claude y reporta el resultado.\n\nPASO 4: \u00bfCu\u00e1nto tiempo estim\u00e1s que ahorrar\u00edas si usaras IA para esas 3 tareas semanalmente durante un mes?',
+ph:'\u2022 Las 3 tareas espec\u00edficas\n\u2022 Los 3 prompts RCTF\n\u2022 El resultado de ejecutar la primera tarea\n\u2022 Estimaci\u00f3n de tiempo ahorrado por mes',
+ev:'Este es el ejercicio m\u00e1s importante del Nivel 1.\n1. \u00bfLas 3 tareas son espec\u00edficas y reales?\n2. \u00bfLos prompts RCTF son completos?\n3. \u00bfEjecut\u00f3 UNA tarea realmente? Sin ejecuci\u00f3n real, todo lo dem\u00e1s es irrelevante.\n4. \u00bfLa estimaci\u00f3n es realista?\nEn espa\u00f1ol, directa y emp\u00e1tica.'}
+]}
+]}
+]},
+{id:'n2',num:'N2',name:'Artesano',emoji:'\u26A1',color:'#ffd166',bg:'rgba(255,209,102,.1)',dur:'5\u20136 sem \u00b7 12 min/d\u00eda',tagline:'De usuario a operador experto',desc:'Prompt engineering cient\u00edfico, system prompts, automatizaci\u00f3n y primera llamada API.',unlock:'n1',unlockPct:80,
+mp:{id:'mp2',title:'Construye un agente sin c\u00f3digo',desc:'Claude Projects o Make \u2014 automatiza algo real que ahorre 2h/semana.'},
+mods:[
+{id:'m2a',icon:'\u{1F52C}',title:'Prompting cient\u00edfico',lessons:[
+{id:'l2a1',title:'Ablation studies: medir qu\u00e9 funciona',mins:13,steps:[
+{T:true,tag:'Metodolog\u00eda',title:'Del arte a la ciencia',body:'<p>Dos tipos de usuarios: quienes prueban hasta que algo funciona, y quienes <strong>dise\u00f1an experimentos</strong> para saber exactamente qu\u00e9 funciona y por qu\u00e9.</p><h4>T\u00e9cnicas con evidencia cient\u00edfica</h4><p><strong>Chain-of-Thought:</strong> "Piensa paso a paso" mejora razonamiento hasta 40%.</p><p><strong>Few-Shot:</strong> 2-5 ejemplos son m\u00e1s efectivos que instrucciones largas.</p><p><strong>Self-Critique:</strong> "Critica tu respuesta y mej\u00f3rala."</p><p><strong>Ablation study:</strong> Cambia UN elemento a la vez. Mide el impacto.</p>'},
+{P:true,tag:'Ablation Study',title:'Tu primer experimento cient\u00edfico',
+task:'CASO: Clasificar emails como urgentes o no urgentes.\n\n1. Crea 10 emails de prueba (5 urgentes, 5 no)\n\n2. Escribe 4 versiones del prompt cambiando UN elemento:\nv1: Instrucci\u00f3n b\u00e1sica\nv2: + definici\u00f3n de "urgente"\nv3: + 2 ejemplos (few-shot)\nv4: + cadena de pensamiento\n\n3. Prueba cada versi\u00f3n con los 10 emails en Claude\n\n4. \u00bfCu\u00e1ntos clasific\u00f3 bien cada versi\u00f3n?',
+ph:'\u2022 Tus 10 emails (resumidos)\n\u2022 Las 4 versiones del prompt\n\u2022 Tabla: v1-v4 \u00d7 emails \u00d7 correcto/incorrecto\n\u2022 \u00bfQu\u00e9 elemento import\u00f3 m\u00e1s?\n\u2022 Hip\u00f3tesis para v5',
+ev:'Eval\u00faa este ablation study.\n1. \u00bfLas versiones cambian UN solo elemento?\n2. \u00bfEjecut\u00f3 con los 10 emails? \u00bfHay datos reales?\n3. \u00bfEl an\u00e1lisis propone hip\u00f3tesis sobre POR QU\u00c9 funcion\u00f3?\nExige rigor. En espa\u00f1ol.'}
+]}
+]},
+{id:'m2b',icon:'\u2699\uFE0F',title:'System Prompts',lessons:[
+{id:'l2b1',title:'El prompt invisible que define todo',mins:13,steps:[
+{T:true,tag:'Arquitectura',title:'El c\u00f3digo que define c\u00f3mo se comporta la IA',body:'<p>Un system prompt define el comportamiento base de un asistente.</p><h4>Los 6 elementos</h4><p><strong>1. Identidad:</strong> Qui\u00e9n es y qu\u00e9 sabe.</p><p><strong>2. Objetivo:</strong> Qu\u00e9 debe lograr.</p><p><strong>3. Restricciones:</strong> Qu\u00e9 NUNCA debe hacer.</p><p><strong>4. Tono:</strong> Formal, cercano, directo.</p><p><strong>5. Formato:</strong> C\u00f3mo estructurar respuestas.</p><p><strong>6. Casos edge:</strong> Qu\u00e9 hacer fuera de scope.</p><div class="callout" style="border-color:#ff8fab;background:rgba(255,143,171,.06)"><div class="cl-t" style="color:#ff8fab">Prueba ahora</div><div class="cl-b">Ve a <a href="https://claude.ai" target="_blank" rel="noopener noreferrer">claude.ai</a> \u2192 Projects \u2192 New Project. System prompt + documentos = primer asistente en 10 min.</div></div>'},
+{P:true,tag:'Construye',title:'Tu primer asistente personalizado',
+task:'Dise\u00f1a y construye UN asistente real:\n\nA. Comunicaci\u00f3n ejecutiva\nB. An\u00e1lisis de riesgos\nC. Onboarding de proyectos\nD. Tu propia idea\n\nPasos:\n1. Escribe el system prompt (6 elementos)\n2. claude.ai \u2192 Projects \u2192 New Project\n3. Sube 2-3 docs relevantes\n4. Prueba con 5 preguntas reales\n5. Itera',
+ph:'\u2022 System prompt completo\n\u2022 5 preguntas y si respondi\u00f3 bien\n\u2022 Qu\u00e9 ajustaste y por qu\u00e9\n\u2022 Un caso donde fall\u00f3',
+ev:'Eval\u00faa este system prompt.\n1. \u00bfTiene los 6 elementos?\n2. \u00bfLas restricciones son espec\u00edficas?\n3. \u00bfHay evidencia de 5 pruebas reales?\n4. \u00bfLos ajustes muestran iteraci\u00f3n?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m2c',icon:'\u{1F517}',title:'Automatizaci\u00f3n',lessons:[
+{id:'l2c1',title:'Pipelines que trabajan mientras duermes',mins:13,steps:[
+{T:true,tag:'Automatizaci\u00f3n',title:'IA que act\u00faa, no solo responde',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u26A1</div><div class="mc-t">Zapier</div><div class="mc-d">M\u00e1s f\u00e1cil. Claude nativo. <a href="https://zapier.com" target="_blank" rel="noopener noreferrer" class="lbtn">Ver \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F527}</div><div class="mc-t">Make.com</div><div class="mc-d">M\u00e1s poderoso. <a href="https://make.com" target="_blank" rel="noopener noreferrer" class="lbtn">Ver \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F310}</div><div class="mc-t">n8n</div><div class="mc-d">Open source. <a href="https://n8n.io" target="_blank" rel="noopener noreferrer" class="lbtn">Ver \u2197</a></div></div><div class="mc"><div class="mc-i">\u{1F916}</div><div class="mc-t">Relevance AI</div><div class="mc-d">Agentes no-code. <a href="https://relevanceai.com" target="_blank" rel="noopener noreferrer" class="lbtn">Ver \u2197</a></div></div></div>'},
+{P:true,tag:'Pipeline Real',title:'Construye un flujo esta semana',
+task:'Construye UNO \u2014 implementaci\u00f3n real, no solo dise\u00f1o:\n\nA. Make + Claude: Gmail \u2192 resume + clasifica \u2192 notificaci\u00f3n\nB. Claude Projects: Sube 5-10 docs, system prompt, prueba 10 consultas\nC. Relevance AI: Agente de research con b\u00fasqueda web\n\nDocumenta: qu\u00e9 construiste, pasos, primer resultado real, tiempo setup vs ahorro.',
+ph:'\u2022 Qu\u00e9 elegiste y por qu\u00e9\n\u2022 Descripci\u00f3n del flujo\n\u2022 Primer resultado real\n\u2022 Tiempo setup vs ahorro/semana\n\u2022 2 mejoras para v2',
+ev:'Exige evidencia real.\n1. \u00bfHay descripci\u00f3n de implementaci\u00f3n real?\n2. \u00bfEl flujo tiene valor pr\u00e1ctico?\n3. \u00bfEl ROI es realista?\nNo aceptes dise\u00f1os sin implementaci\u00f3n. En espa\u00f1ol.'}
+]}
+]},
+{id:'m2d',icon:'\u{1F50C}',title:'API y Vibe Coding',lessons:[
+{id:'l2d1',title:'Construye herramientas sin programar',mins:12,steps:[
+{T:true,tag:'Builder',title:'De usuaria a creadora de herramientas',body:'<p>Una <strong>API</strong> es la puerta para usar Claude desde cualquier app. <strong>Vibe coding</strong>: le pides a la IA que escriba el c\u00f3digo.</p><div class="callout" style="border-color:#b97aff;background:rgba(185,122,255,.06)"><div class="cl-t" style="color:#b97aff">Cursor \u2014 el editor que democratiz\u00f3 el c\u00f3digo</div><div class="cl-b">Describes en espa\u00f1ol qu\u00e9 quieres y Cursor escribe el c\u00f3digo. <a href="https://cursor.com" target="_blank" rel="noopener noreferrer" class="lbtn">Descargar \u2197</a> | API key: <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" class="lbtn">console.anthropic.com \u2197</a></div></div>'},
+{P:true,tag:'Vibe Coding',title:'Haz que la IA construya algo para ti',
+task:'P\u00eddele a Claude que construya una herramienta:\n\nA. "Crea una p\u00e1gina HTML de status report con campos editables y bot\u00f3n de copiar"\nB. "Crea una calculadora de estimaci\u00f3n de proyectos"\nC. Tu propia idea \u00fatil\n\nPrompt base:\n"Crea [idea]. Funciona en el browser. Sin librer\u00edas externas. Un solo archivo HTML. Dame instrucciones para ejecutarlo."\n\nEjecuta lo que genere.',
+ph:'\u2022 El prompt exacto\n\u2022 Qu\u00e9 gener\u00f3 la IA\n\u2022 \u00bfFuncion\u00f3? \u00bfQu\u00e9 ajustaste?\n\u2022 \u00bfC\u00f3mo lo usar\u00edas en tu trabajo?',
+ev:'Eval\u00faa vibe coding.\n1. \u00bfEjecut\u00f3 el c\u00f3digo generado?\n2. \u00bfEl prompt fue espec\u00edfico?\n3. \u00bfLa herramienta tiene valor real?\n4. \u00bfIter\u00f3 con la IA si hubo errores?\nCelebra el milestone. En espa\u00f1ol.'}
+]}
+]}
+]},
+{id:'n3',num:'N3',name:'Ingeniero',emoji:'\u{1F527}',color:'#ff8fab',bg:'rgba(255,143,171,.1)',dur:'6\u20138 sem \u00b7 15 min/d\u00eda',tagline:'De operador a constructor de sistemas',desc:'Fundamentos matem\u00e1ticos, Transformer, RAG, agentes de producci\u00f3n y fine-tuning.',unlock:'n2',unlockPct:80,
+mp:{id:'mp3',title:'Sistema RAG + agente en producci\u00f3n',desc:'RAG sobre docs reales + agente que usa ese conocimiento.'},
+mods:[
+{id:'m3a',icon:'\u03A3',title:'Matem\u00e1ticas para IA',lessons:[
+{id:'l3a1',title:'Vectores, embeddings y atenci\u00f3n',mins:14,steps:[
+{T:true,tag:'Fundamentos',title:'El lenguaje secreto de la IA',body:'<p>Toda la IA moderna opera sobre <strong>texto convertido en n\u00fameros en espacio multidimensional</strong>.</p><p><strong>Vector:</strong> Lista de n\u00fameros. "gato" = [0.2, -0.8, 0.5, ...] en 768 dimensiones. Palabras similares tienen vectores similares.</p><p><strong>Softmax:</strong> Convierte los n\u00fameros del modelo en probabilidades que suman 1. La \u00faltima capa de todo LLM.</p><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">Recurso esencial</div><div class="cl-b"><strong>3Blue1Brown "Essence of Linear Algebra"</strong> \u2014 Los primeros 5 videos son suficientes. <a href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank" rel="noopener noreferrer" class="lbtn">Ver \u2197</a></div></div>'},
+{P:true,tag:'Ejercicio',title:'La IA te ense\u00f1a con tus propios ejemplos',
+task:'Usa este prompt en Claude:\n\n"Act\u00faa como profesor de matem\u00e1ticas para IA. Expl\u00edcame usando analog\u00edas de gesti\u00f3n de proyectos:\n\n1. \u00bfQu\u00e9 es un vector en word embeddings?\n2. \u00bfPor qu\u00e9 el mecanismo de atenci\u00f3n es poderoso? (sin f\u00f3rmulas)\n3. \u00bfQu\u00e9 significa que dos documentos sean similares para una IA?\n\nTermina con un ejercicio mental."',
+ph:'\u2022 Los 3 conceptos con TUS palabras (no copiados)\n\u2022 La analog\u00eda que mejor funcion\u00f3\n\u2022 El ejercicio mental y tu respuesta\n\u2022 Una pregunta que suri\u00f3 (obligatoria)',
+ev:'Eval\u00faa comprensi\u00f3n conceptual, no precisi\u00f3n t\u00e9cnica.\n1. \u00bfParafrasea con SUS palabras o copia?\n2. \u00bfLas analog\u00edas conectan con su mundo real?\n3. \u00bfLa pregunta es genuina y espec\u00edfica?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m3b',icon:'\u2699\uFE0F',title:'Arquitectura Transformer',lessons:[
+{id:'l3b1',title:'"Attention Is All You Need"',mins:15,steps:[
+{T:true,tag:'Arquitectura',title:'El paper que cambi\u00f3 la historia',body:'<p>En 2017, Google public\u00f3 <em>"Attention Is All You Need"</em>. 93,000+ citas. Directamente responsable de GPT, Claude y Gemini.</p><div class="paper"><div class="paper-m">VASWANI ET AL. \u00b7 GOOGLE BRAIN \u00b7 NEURIPS 2017</div><div class="paper-t">"Attention Is All You Need"</div><div class="paper-a">Proponemos el Transformer, basado \u00fanicamente en mecanismos de atenci\u00f3n, eliminando la recurrencia.</div><div class="paper-w" style="color:#ff8fab">El paper fundacional. <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer" class="lbtn">Leer \u2197</a> <a href="https://jalammar.github.io/illustrated-transformer/" target="_blank" rel="noopener noreferrer" class="lbtn">Ilustrado \u2197</a></div></div>'},
+{P:true,tag:'Paper',title:'Lee tu primer fragmento de investigaci\u00f3n real',
+task:'PASO 1: arxiv.org/abs/1706.03762\nLee Abstract y Secci\u00f3n 3.1\n\nPASO 2: jalammar.github.io/illustrated-transformer\nLee el art\u00edculo completo\n\nResponde con TUS palabras:\n1. \u00bfCu\u00e1l era el problema que resolv\u00edan?\n2. \u00bfQu\u00e9 es el mecanismo de atenci\u00f3n en 1 oraci\u00f3n?\n3. \u00bfQu\u00e9 parte NO entendiste? (obligatoria)\n4. \u00bfQu\u00e9 pregunta te qued\u00f3 sin respuesta?',
+ph:'Tus respuestas a los 4 puntos con TUS palabras.',
+ev:'Eval\u00faa esta lectura de paper.\n1. \u00bfLas respuestas son en SUS palabras?\n2. \u00bfEntendi\u00f3 el problema?\n3. La confusi\u00f3n: \u00bfes genuina? Si se\u00f1ala algo real, resu\u00e9lvelo.\nAnima el pensamiento cr\u00edtico. En espa\u00f1ol.'}
+]}
+]},
+{id:'m3c',icon:'\u{1F5C4}\uFE0F',title:'RAG',lessons:[
+{id:'l3c1',title:'LLMs sin RAG = expertos con amnesia',mins:14,steps:[
+{T:true,tag:'RAG',title:'La arquitectura que hace \u00fatiles a los LLMs',body:'<div class="callout" style="border-color:#ffd166;background:rgba(255,209,102,.06)"><div class="cl-t" style="color:#ffd166">RAG vs Fine-tuning</div><div class="cl-b"><strong>RAG:</strong> Para que el modelo "sepa" cosas de tus docs. Flexible y barato.<br><strong>Fine-tuning:</strong> Para cambiar el ESTILO, no el conocimiento. Para hechos, fine-tuning es peor que RAG.</div></div><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">Herramientas sin c\u00f3digo</div><div class="cl-b"><a href="https://claude.ai" target="_blank" rel="noopener noreferrer" class="lbtn">Claude Projects \u2197</a><a href="https://chatbase.co" target="_blank" rel="noopener noreferrer" class="lbtn">Chatbase.co \u2197</a><a href="https://dify.ai" target="_blank" rel="noopener noreferrer" class="lbtn">Dify.ai \u2197</a></div></div>'},
+{P:true,tag:'Construye',title:'Tu primer sistema RAG',
+task:'A. CLAUDE PROJECTS (15 min):\n- New Project \u2192 sube 5-10 docs tuyos\n- System prompt que especifique c\u00f3mo usarlos\n- Prueba 10 preguntas que SOLO los docs responder\u00edan\n\nB. CHATBASE.CO (20 min):\n- Sube 3-5 PDFs, prueba s\u00edntesis de m\u00faltiples docs\n- 2 casos excelentes + 2 donde fall\u00f3\n\n\u00bfEn qu\u00e9 preguntas falla el RAG? \u00bfPor qu\u00e9?',
+ph:'\u2022 Opci\u00f3n elegida + docs usados\n\u2022 5 preguntas con resultados\n\u2022 An\u00e1lisis: \u00fatil vs alucin\u00f3\n\u2022 Causas de falla\n\u2022 2 mejoras',
+ev:'Eval\u00faa esta implementaci\u00f3n.\n1. \u00bfHay evidencia de implementaci\u00f3n real?\n2. \u00bfEl an\u00e1lisis de fallas identifica causas t\u00e9cnicas reales?\n3. \u00bfLas mejoras son informadas?\nEl an\u00e1lisis de fallas vale m\u00e1s que los \u00e9xitos. En espa\u00f1ol.'}
+]}
+]},
+{id:'m3d',icon:'\u{1F916}',title:'Agentes de Producci\u00f3n',lessons:[
+{id:'l3d1',title:'ReAct y multi-agente',mins:15,steps:[
+{T:true,tag:'Sistemas',title:'Demo vs agente real en producci\u00f3n',body:'<div class="callout" style="border-color:#ff8fab;background:rgba(255,143,171,.06)"><div class="cl-t" style="color:#ff8fab">Problemas reales en producci\u00f3n</div><div class="cl-b"><strong>Reliability:</strong> LLMs fallan \u2014 necesitas retry + fallbacks.<br><strong>Costo:</strong> 10 llamadas API = 10-50x m\u00e1s caro.<br><strong>Evals:</strong> Mucho m\u00e1s dif\u00edciles que para modelos est\u00e1ticos.</div></div><div class="callout" style="border-color:#58f5c4;background:rgba(88,245,196,.06)"><div class="cl-t" style="color:#58f5c4">Plataformas sin c\u00f3digo</div><div class="cl-b"><a href="https://relevanceai.com" target="_blank" rel="noopener noreferrer" class="lbtn">Relevance AI \u2197</a><a href="https://n8n.io" target="_blank" rel="noopener noreferrer" class="lbtn">n8n \u2197</a><a href="https://make.com" target="_blank" rel="noopener noreferrer" class="lbtn">Make.com \u2197</a></div></div>'},
+{P:true,tag:'Construye',title:'Agente real con restricciones de producci\u00f3n',
+task:'DISE\u00d1O PRIMERO:\n- Objetivo espec\u00edfico y medible\n- Arquitectura: \u00bfReAct o Plan-Execute?\n- Herramientas que necesita\n- Casos de falla y c\u00f3mo los maneja\n\nIMPLEMENTACI\u00d3N:\nA. Claude Projects avanzado\nB. Relevance AI (relevanceai.com)\nC. n8n con AI Agent node\n\nPRUEBA: 10 inputs distintos. \u00bfCu\u00e1ntas veces complet\u00f3 bien?\n\nPOST-MORTEM: \u00bfQu\u00e9 faltar\u00eda para producci\u00f3n real?',
+ph:'Dise\u00f1o + implementaci\u00f3n + 10 resultados + post-mortem.',
+ev:'Eval\u00faa este agente.\n\u00bfEl problema es apropiado? \u00bfLa arquitectura est\u00e1 justificada? \u00bfHay 10 tests reales?\nPost-mortem: \u00bfmenciona logging, rate limiting, cost controls, fallbacks?\nExige rigor. En espa\u00f1ol.'}
+]}
+]},
+{id:'m3e',icon:'\u{1F9EC}',title:'Fine-tuning',lessons:[
+{id:'l3e1',title:'LoRA, QLoRA y cu\u00e1ndo vale la pena',mins:13,steps:[
+{T:true,tag:'Avanzado',title:'La habilidad m\u00e1s mal entendida',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u2705</div><div class="mc-t">S\u00cd si:</div><div class="mc-d">Quieres cambiar el ESTILO. Tienes 500+ ejemplos de calidad.</div></div><div class="mc"><div class="mc-i">\u274C</div><div class="mc-t">NO si:</div><div class="mc-d">Quieres m\u00e1s hechos (usa RAG). El prompting ya funciona.</div></div></div><p><strong>LoRA:</strong> Matrices peque\u00f1as sin tocar los pesos originales. 3-10x m\u00e1s barato.</p><p><strong>QLoRA:</strong> LoRA + cuantizaci\u00f3n. Llama 3 en GPU de $50/mes.</p><p><strong>DPO:</strong> Alternativa moderna a RLHF \u2014 m\u00e1s simple y estable.</p><div class="callout" style="border-color:#ffd166;background:rgba(255,209,102,.06)"><div class="cl-t" style="color:#ffd166">Plataformas</div><div class="cl-b"><a href="https://www.together.ai" target="_blank" rel="noopener noreferrer" class="lbtn">Together AI \u2197</a><a href="https://platform.openai.com/finetune" target="_blank" rel="noopener noreferrer" class="lbtn">OpenAI FT \u2197</a><a href="https://huggingface.co/autotrain" target="_blank" rel="noopener noreferrer" class="lbtn">HF AutoTrain \u2197</a></div></div>'},
+{P:true,tag:'Plan',title:'Dise\u00f1a el plan completo de fine-tuning',
+task:'Para UN caso de uso real:\n\n1. JUSTIFICACI\u00d3N\n\u00bfPor qu\u00e9 fine-tuning y no prompting o RAG?\n\n2. DATASET\n\u00bfQu\u00e9 datos? \u00bfCu\u00e1ntos ejemplos? \u00bfC\u00f3mo los recolectas?\n\n3. T\u00c9CNICA\n\u00bfLoRA, instruction tuning, DPO? \u00bfPor qu\u00e9?\n\n4. EVALUACI\u00d3N\n\u00bfC\u00f3mo mides si funcion\u00f3?\n\n5. COSTO\nInvestiga precios reales en Together AI u OpenAI.\n\nLuego: p\u00eddele a Claude que critique tu plan y responde esa cr\u00edtica.',
+ph:'\u2022 Plan completo (5 secciones)\n\u2022 La cr\u00edtica de Claude\n\u2022 Tu respuesta: \u00bfen qu\u00e9 cediste? \u00bfen qu\u00e9 defendiste?',
+ev:'Eval\u00faa este plan.\n1. \u00bfLa justificaci\u00f3n es s\u00f3lida?\n2. \u00bfEl plan de datos es realista?\n3. \u00bfLa t\u00e9cnica est\u00e1 justificada?\n4. \u00bfLas m\u00e9tricas son medibles?\n5. \u00bfSu respuesta a la cr\u00edtica muestra pensamiento independiente?\nEn espa\u00f1ol.'}
+]}
+]}
+]},
+{id:'n4',num:'N4',name:'Estratega',emoji:'\u{1F3D7}\uFE0F',color:'#b97aff',bg:'rgba(185,122,255,.1)',dur:'6\u20138 sem \u00b7 15 min/d\u00eda',tagline:'De constructor a l\u00edder de industria',desc:'Infraestructura, evaluaci\u00f3n, AI Safety, negocios de IA y sectores industriales profundos.',unlock:'n3',unlockPct:80,
+mp:{id:'mp4',title:'Plan de negocio + arquitectura t\u00e9cnica',desc:'Producto de IA: propuesta de valor, arquitectura real, costos y go-to-market.'},
+mods:[
+{id:'m4a',icon:'\u2699\uFE0F',title:'Infraestructura y Escala',lessons:[
+{id:'l4a1',title:'El stack que separa demos de productos',mins:14,steps:[
+{T:true,tag:'Ingenier\u00eda',title:'Por qu\u00e9 el 90% de demos fallan en producci\u00f3n',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u{1F50C}</div><div class="mc-t">API Gateway</div><div class="mc-d">Rate limiting, auth, logging.</div></div><div class="mc"><div class="mc-i">\u{1F4CA}</div><div class="mc-t">Observabilidad</div><div class="mc-d">LangSmith, Helicone. Sin esto volas ciego.</div></div><div class="mc"><div class="mc-i">\u{1F4BE}</div><div class="mc-t">Caching</div><div class="mc-d">40-70% reducci\u00f3n de costos.</div></div><div class="mc"><div class="mc-i">\u{1F504}</div><div class="mc-t">Fallbacks</div><div class="mc-d">Los modelos tienen downtime.</div></div></div><div class="callout" style="border-color:#b97aff;background:rgba(185,122,255,.06)"><div class="cl-t" style="color:#b97aff">Tri\u00e1ngulo de producci\u00f3n</div><div class="cl-b"><strong>Calidad vs Velocidad vs Costo.</strong> Solo optimizas 2. Haiku para clasificaci\u00f3n + Opus para an\u00e1lisis = 10x m\u00e1s barato, 95% de la calidad.</div></div>'},
+{P:true,tag:'Arquitectura',title:'Dise\u00f1a la arquitectura t\u00e9cnica completa',
+task:'Para un caso de uso real:\n\n1. DIAGRAMA DEL SISTEMA (texto estructurado)\n2. SELECCI\u00d3N DE MODELOS (\u00bfOpus para qu\u00e9? \u00bfHaiku para qu\u00e9?)\n3. ESTIMACI\u00d3N DE COSTOS para 500 usuarios/mes (precios reales de la API)\n4. M\u00c9TRICAS DE OBSERVABILIDAD (5 m\u00e9tricas espec\u00edficas)\n5. PUNTOS DE FALLA (3 m\u00e1s probables y mitigaci\u00f3n)\n6. QU\u00c9 NO AUTOMATIZAR\u00cdAS (igual de importante que el resto)',
+ph:'Arquitectura completa con los 6 puntos.',
+ev:'Eval\u00faa como CTO senior.\n1. \u00bfUsa Opus para todo? (= no entiende trade-offs)\n2. \u00bfLos costos usan precios reales?\n3. \u00bfLas m\u00e9tricas son correctas?\n4. El punto 6: "todo automatizable" = no entiende l\u00edmites reales de IA.\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m4b',icon:'\u{1F4CA}',title:'Evaluaci\u00f3n de Sistemas',lessons:[
+{id:'l4b1',title:'La habilidad m\u00e1s escasa en IA aplicada',mins:13,steps:[
+{T:true,tag:'Evals',title:'El 80% no sabe si su sistema funciona',body:'<p><strong>Nivel 1:</strong> Benchmarks est\u00e1ndar (MMLU). In\u00fatiles para tu aplicaci\u00f3n espec\u00edfica.</p><p><strong>Nivel 2:</strong> Evals personalizados. 50-200 casos con respuestas de referencia.</p><p><strong>Nivel 3:</strong> LLM-as-Judge. Escalable pero introduce sesgos nuevos.</p><div class="callout" style="border-color:#ff8fab;background:rgba(255,143,171,.06)"><div class="cl-t" style="color:#ff8fab">Goodhart\'s Law en IA</div><div class="cl-b">"Cuando una m\u00e9trica se convierte en objetivo, deja de ser buena m\u00e9trica." Los modelos aprenden a maximizar benchmarks sin mejorar capacidades reales.</div></div>'},
+{P:true,tag:'Evals',title:'Plan de evaluaci\u00f3n completo',
+task:'1. OBJETIVO MEDIBLE\n"85% task completion" ok / "Funciona bien" no\n\n2. EVAL SET (15 casos)\nInput + output esperado + criterio de evaluaci\u00f3n\n(Incluye casos edge e inputs ambiguos)\n\n3. LLM-AS-JUDGE\nEscribe el prompt completo para que Claude eval\u00fae outputs\n\n4. M\u00c9TRICAS DE PRODUCCI\u00d3N (5 m\u00e9tricas para 100 usuarios/d\u00eda)\n\n5. ANTI-GAMING\n\u00bfC\u00f3mo sabes que tu eval representa el uso real?',
+ph:'Plan completo. Para eval set: 5 casos completos. Para LLM-as-Judge: texto completo del prompt.',
+ev:'Eval\u00faa este plan.\n1. \u00bfEl objetivo es cuantificable?\n2. \u00bfLos casos incluyen edges e inputs ambiguos?\n3. \u00bfEl prompt de LLM-as-Judge tiene escala y criterios?\n4. \u00bfLa pregunta anti-gaming es reflexiva?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m4c',icon:'\u{1F6E1}\uFE0F',title:'AI Safety y Alignment',lessons:[
+{id:'l4c1',title:'El problema m\u00e1s importante de la IA',mins:14,steps:[
+{T:true,tag:'Safety',title:'No es ciencia ficci\u00f3n \u2014 es ingenier\u00eda activa',body:'<p><strong>Misalignment:</strong> El sistema optimiza para el objetivo dado \u2014 pero ese objetivo no capturaba lo que quer\u00edas. Twitter: "maximiza engagement" \u2192 amplifica indignaci\u00f3n.</p><div class="paper"><div class="paper-m">ANTHROPIC \u00b7 2022</div><div class="paper-t">Constitutional AI: Harmlessness from AI Feedback</div><div class="paper-a">M\u00e9todo para entrenar sistemas de IA para ser \u00fatiles, inofensivos y honestos usando principios expl\u00edcitos.</div><div class="paper-w" style="color:#b97aff"><a href="https://arxiv.org/abs/2212.08073" target="_blank" rel="noopener noreferrer" class="lbtn">Leer \u2197</a><a href="https://artificialintelligenceact.eu" target="_blank" rel="noopener noreferrer" class="lbtn">EU AI Act \u2197</a></div></div>'},
+{P:true,tag:'Auditor\u00eda',title:'Audita un sistema de IA por riesgos',
+task:'Elige un producto de IA que uses (Claude, ChatGPT, Gemini, etc.):\n\n1. DESCRIPCI\u00d3N: \u00bfQu\u00e9 hace? \u00bfQui\u00e9nes son los usuarios? \u00bfObjetivo de la empresa?\n2. ALIGNMENT CHECK: \u00bfHay tensi\u00f3n entre el objetivo de la empresa y los usuarios?\n3. RIESGOS (EU AI Act): \u00bfCategor\u00eda de riesgo? \u00bfHarms potenciales?\n4. SAFETY OBSERVADO: \u00bfQu\u00e9 hace el sistema para mitigar?\n5. GAPS: \u00bfQu\u00e9 salvaguardas agregar\u00edas?',
+ph:'Auditor\u00eda completa con los 5 puntos. Usa ejemplos concretos.',
+ev:'Eval\u00faa esta auditor\u00eda.\n1. \u00bfEntiende el sistema real?\n2. \u00bfEl an\u00e1lisis de alignment identifica tensiones reales?\n3. \u00bfLa clasificaci\u00f3n EU AI Act est\u00e1 argumentada?\n4. \u00bfLos riesgos son espec\u00edficos?\n5. \u00bfLas salvaguardas son plausibles?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m4d',icon:'\u{1F3D7}\uFE0F',title:'Negocios de IA',lessons:[
+{id:'l4d1',title:'Moats reales vs wrappers que mueren',mins:14,steps:[
+{T:true,tag:'Estrategia',title:'Por qu\u00e9 la mayor\u00eda de startups de IA fracasaron',body:'<p>Error m\u00e1s com\u00fan: construir un "wrapper" sobre GPT-4. Cuando OpenAI a\u00f1ade esa feature, el wrapper se vuelve irrelevante overnight.</p><h4>Qu\u00e9 crea un moat real</h4><p><strong>Datos propios:</strong> Harvey AI tiene contratos con 100 firmas legales top. Nadie m\u00e1s tiene esos datos.</p><p><strong>Data flywheel:</strong> Uso \u2192 mejora \u2192 m\u00e1s usuarios \u2192 m\u00e1s datos \u2192 mejora.</p><p><strong>Workflow lock-in:</strong> El producto se embebe en procesos.</p><div class="callout" style="border-color:#b97aff;background:rgba(185,122,255,.06)"><div class="cl-t" style="color:#b97aff">Modelos de negocio que funcionan</div><div class="cl-b"><strong>Outcome-based:</strong> Cobras por resultado.<br><strong>Retainer estrat\u00e9gico:</strong> CAIO externo. $3-8K/mes.<br><strong>Data licensing:</strong> Datos \u00fanicos como byproduct son vendibles.</div></div>'},
+{P:true,tag:'VC Analysis',title:'Eval\u00faa una startup de IA como inversor',
+task:'Elige una empresa real (no OpenAI/Anthropic):\nHarvey AI, Suki, Glean, Cursor, ElevenLabs, Perplexity, o cualquier startup.\n\n1. \u00bfQu\u00e9 problema resuelve? \u00bfQui\u00e9n paga?\n2. \u00bfCu\u00e1l es el moat defensible en 3 a\u00f1os?\n3. \u00bfQu\u00e9 pasa si OpenAI lanza lo mismo ma\u00f1ana?\n4. \u00bfExiste un data flywheel?\n5. Busca \u00faltima ronda en Crunchbase. \u00bfJustificada?\n6. \u00bfInvertir\u00edas $100K? \u00bfPor qu\u00e9 s\u00ed o no?',
+ph:'An\u00e1lisis completo. El punto 6 es el m\u00e1s importante.',
+ev:'Eval\u00faa como Partner de a16z.\n1. \u00bfEl an\u00e1lisis del moat va m\u00e1s all\u00e1 de "buen producto"?\n2. \u00bfMenciona riesgo de commoditization?\n3. \u00bfEntiende el data flywheel?\n4. \u00bfEl veredicto tiene convicci\u00f3n real?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m4e',icon:'\u{1F3ED}',title:'Sectores Industriales',lessons:[
+{id:'l4e1',title:'Legal, Salud, Finanzas, Educaci\u00f3n y m\u00e1s',mins:15,steps:[
+{T:true,tag:'Industria',title:'Donde expertise + IA = valor imposible de replicar',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u2696\uFE0F</div><div class="mc-t">Legal Tech</div><div class="mc-d">Harvey AI. 50% menos en due diligence.</div></div><div class="mc"><div class="mc-i">\u{1F3E5}</div><div class="mc-t">Healthcare AI</div><div class="mc-d">Abridge, Nabla. M\u00e9dicos recuperan 2-3h/d\u00eda.</div></div><div class="mc"><div class="mc-i">\u{1F4B0}</div><div class="mc-t">FinTech + IA</div><div class="mc-d">JPMorgan: 12,000 contratos/a\u00f1o en segundos.</div></div><div class="mc"><div class="mc-i">\u{1F393}</div><div class="mc-t">EdTech IA</div><div class="mc-d">Khanmigo. Tutoreo 1:1 a escala masiva.</div></div><div class="mc"><div class="mc-i">\u{1F3ED}</div><div class="mc-t">Manufactura</div><div class="mc-d">GE: $1B+ con predictive maintenance.</div></div><div class="mc"><div class="mc-i">\u{1F52C}</div><div class="mc-t">BioTech + IA</div><div class="mc-d">AlphaFold resolvi\u00f3 protein folding.</div></div></div>'},
+{P:true,tag:'Inmersi\u00f3n',title:'Investiga profundo el sector que m\u00e1s resuena',
+task:'Usa Claude con b\u00fasqueda web:\n\n"Act\u00faa como analista de mercado de IA en [SECTOR]. Investiga 2025. Dame:\n1. 5 empresas m\u00e1s importantes + propuesta de valor\n2. Tama\u00f1o de mercado con fuente\n3. 3 mayores barreras de adopci\u00f3n\n4. 3 casos con ROI comprobado (con n\u00fameros)\n5. 2 casos donde la IA prometi\u00f3 y fall\u00f3\n6. 3 roles m\u00e1s demandados con salarios reales (USD remoto)"\n\nDespu\u00e9s: escribe el primer mensaje que le enviar\u00edas a una empresa objetivo hoy.',
+ph:'\u2022 Sector elegido y por qu\u00e9\n\u2022 Hallazgos con datos concretos\n\u2022 La empresa objetivo\n\u2022 El primer mensaje real\n\u2022 Un paso concreto esta semana',
+ev:'Eval\u00faa. Nivel consultor.\n1. \u00bfLos datos incluyen n\u00fameros reales?\n2. \u00bfLos casos de fracaso son espec\u00edficos?\n3. \u00bfLos salarios son de fuentes reales?\n4. \u00bfEl primer mensaje tiene CTA claro?\nExige nivel profesional. En espa\u00f1ol.'}
+]}
+]}
+]},
+{id:'n5',num:'N5',name:'Investigador',emoji:'\u{1F52D}',color:'#5bb8ff',bg:'rgba(91,184,255,.1)',dur:'8\u201310 sem \u00b7 15 min/d\u00eda',tagline:'De l\u00edder a creador del campo',desc:'Papers cient\u00edficos, entrenamiento de modelos, fronteras abiertas y tu primera contribuci\u00f3n original.',unlock:'n4',unlockPct:80,
+mp:{id:'mp5',title:'Tu primera contribuci\u00f3n original',desc:'Replica un paper en nuevo dominio, crea un eval dataset, o publica an\u00e1lisis que no existe.'},
+mods:[
+{id:'m5a',icon:'\u{1F4C4}',title:'Leer papers cient\u00edficos',lessons:[
+{id:'l5a1',title:'M\u00e9todo S2ORC \u2014 sin sufrir',mins:13,steps:[
+{T:true,tag:'Investigaci\u00f3n',title:'La habilidad que separa usuarios de creadores',body:'<h4>M\u00e9todo S2ORC</h4><p><strong>S:</strong> Abstract + conclusi\u00f3n. \u00bfVale leer m\u00e1s? El 80% se queda aqu\u00ed.</p><p><strong>2:</strong> Titulares + figuras + captions.</p><p><strong>O:</strong> Lee completo, omitiendo demostraciones que no necesitas.</p><p><strong>R:</strong> Las referencias son minas de oro.</p><p><strong>C:</strong> \u00bfQu\u00e9 no prueban? \u00bfQu\u00e9 asumen? \u00bfQu\u00e9 ocultan?</p><div class="callout" style="border-color:#5bb8ff;background:rgba(91,184,255,.06)"><div class="cl-t" style="color:#5bb8ff">Los 6 papers esenciales</div><div class="cl-b">1. "Attention Is All You Need" <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a><br>2. Few-Shot Learners \u2014 GPT-3 <a href="https://arxiv.org/abs/2005.14165" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a><br>3. InstructGPT <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a><br>4. Constitutional AI <a href="https://arxiv.org/abs/2212.08073" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a><br>5. Chain-of-Thought <a href="https://arxiv.org/abs/2201.11903" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a><br>6. Sparks of AGI <a href="https://arxiv.org/abs/2303.12528" target="_blank" rel="noopener noreferrer" class="lbtn">\u2197</a></div></div>'},
+{P:true,tag:'Lectura',title:'Lee el paper de GPT-3 con S2ORC',
+task:'S: arxiv.org/abs/2005.14165 \u2014 Abstract + Conclusi\u00f3n\n\u00bfQu\u00e9 demuestran en 2 oraciones?\n\n2: Figuras 1, 3 y 9\n\u00bfQu\u00e9 muestran sin leer el texto?\n\nO: Secci\u00f3n 1 (Intro) + Secci\u00f3n 6 (Limitations)\n\nC: \u00bfQu\u00e9 claim te parece exagerado?\n\nBonus: Busca "GPT-3 paper criticisms" y eval\u00faa si una cr\u00edtica es v\u00e1lida.',
+ph:'Tus respuestas a S, 2, O y C + el bonus.',
+ev:'Eval\u00faa.\n1. \u00bfEl resumen captura la contribuci\u00f3n real?\n2. \u00bfInterpret\u00f3 las figuras correctamente?\n3. \u00bfLey\u00f3 las Limitations honestamente?\n4. La cr\u00edtica C: \u00bfidentifica una tensi\u00f3n real?\nAnima el pensamiento cr\u00edtico. En espa\u00f1ol.'}
+]}
+]},
+{id:'m5b',icon:'\u{1F3CB}\uFE0F',title:'Entrenamiento de modelos',lessons:[
+{id:'l5b1',title:'De datos a modelo deployado',mins:15,steps:[
+{T:true,tag:'ML Profundo',title:'C\u00f3mo se entrena un LLM de verdad',body:'<p><strong>1. Pre-training:</strong> Lee ~1-10T tokens. GPT-3 cost\u00f3 ~$4.6M en compute.</p><p><strong>2. SFT:</strong> Pares (instrucci\u00f3n, respuesta ideal) por humanos. 10k-100k ejemplos transforman el predictor en asistente.</p><p><strong>3. RLHF / DPO:</strong> Humanos califican respuestas. DPO es m\u00e1s simple y estable que RLHF cl\u00e1sico.</p><p><strong>4. Constitutional AI:</strong> Principios expl\u00edcitos + la IA eval\u00faa sus propias respuestas. C\u00f3mo se entren\u00f3 Claude.</p><div class="callout" style="border-color:#5bb8ff;background:rgba(91,184,255,.06)"><div class="cl-t" style="color:#5bb8ff">Scaling Laws</div><div class="cl-b">Performance escala con m\u00e1s par\u00e1metros + datos + compute. \u00bfSeguimos en la parte lineal? <a href="https://arxiv.org/abs/2001.08361" target="_blank" rel="noopener noreferrer" class="lbtn">Leer \u2197</a></div></div>'},
+{P:true,tag:'An\u00e1lisis',title:'Analiza un modelo open source real',
+task:'Elige: Llama 3 (Meta), Mistral 7B, Phi-3 (Microsoft) o Gemma (Google).\n\nBusca el paper t\u00e9cnico oficial. Analiza:\n1. \u00bfCu\u00e1ntos par\u00e1metros? \u00bfCu\u00e1ntos tokens de entrenamiento?\n2. \u00bfQu\u00e9 datos usaron? \u00bfQu\u00e9 filtraron?\n3. \u00bfQu\u00e9 t\u00e9cnicas? (SFT, RLHF, DPO, CAI)\n4. \u00bfQu\u00e9 benchmarks reportan y cu\u00e1les NO reportan?\n5. \u00bfCu\u00e1l fue la decisi\u00f3n m\u00e1s sorprendente?',
+ph:'An\u00e1lisis de los 5 puntos para el modelo elegido.',
+ev:'Eval\u00faa.\n1. \u00bfUs\u00f3 el paper oficial?\n2. \u00bfEl an\u00e1lisis de datos va m\u00e1s all\u00e1 de "usaron internet"?\n3. \u00bfComprende la diferencia entre SFT, RLHF y DPO?\n4. \u00bfIdentifica qu\u00e9 benchmarks NO se reportan?\nEn espa\u00f1ol.'}
+]}
+]},
+{id:'m5c',icon:'\u{1F52D}',title:'Fronteras del campo',lessons:[
+{id:'l5c1',title:'Las preguntas que nadie ha respondido',mins:14,steps:[
+{T:true,tag:'Frontera',title:'El borde del conocimiento',body:'<div class="mgrid"><div class="mc"><div class="mc-i">\u{1F9E0}</div><div class="mc-t">\u00bfSiguen las Scaling Laws?</div><div class="mc-d">GPT-4 a GPT-4o no mostr\u00f3 el mismo salto. \u00bfRetornos decrecientes?</div></div><div class="mc"><div class="mc-i">\u{1F4AD}</div><div class="mc-t">\u00bfLos LLMs razonan?</div><div class="mc-d">\u00bfRazonamiento real o "stochastic parrots"? Sin consenso.</div></div><div class="mc"><div class="mc-i">\u{1F3AF}</div><div class="mc-t">\u00bfAgentes confiables?</div><div class="mc-d">Reliability y planning largo siguen siendo problemas abiertos.</div></div><div class="mc"><div class="mc-i">\u{1F52E}</div><div class="mc-t">\u00bfAGI cu\u00e1ndo?</div><div class="mc-d">Anthropic: 2-5 a\u00f1os. LeCun: arquitectura actual no puede. Sin consenso.</div></div></div>'},
+{P:true,tag:'Exploraci\u00f3n',title:'Elige tu frontera',
+task:'Lee 2 de estos:\n- alignmentforum.org/posts/unsolved-problems-in-ml-safety\n- arxiv.org/abs/2206.07682 (LeCun)\n- arxiv.org/abs/2303.12528 (Sparks of AGI)\n\n1. \u00bfQu\u00e9 pregunta abierta elegiste y por qu\u00e9 te importa?\n2. \u00bfCu\u00e1l es el estado actual?\n3. \u00bfQu\u00e9 approach podr\u00eda avanzar?\n4. \u00bfConecta con tu nicho industrial?\n5. Si tuvieras 6 meses, \u00bfqu\u00e9 experimento peque\u00f1o dise\u00f1ar\u00edas?',
+ph:'Tus respuestas a los 5 puntos. Para el 5, scope acotado y metodolog\u00eda clara.',
+ev:'Eval\u00faa.\n1. \u00bfLa pregunta elegida es genuina?\n2. \u00bfEl estado del arte est\u00e1 capturado correctamente?\n3. \u00bfEl approach es plausible?\n4. \u00bfEl experimento de 6 meses tiene scope acotado?\nEstimula ambici\u00f3n con rigor. En espa\u00f1ol.'}
+]}
+]},
+{id:'m5d',icon:'\u2728',title:'Tu contribuci\u00f3n al campo',lessons:[
+{id:'l5d1',title:'De consumidora a creadora del campo',mins:14,steps:[
+{T:true,tag:'Contribuci\u00f3n',title:'El mito m\u00e1s da\u00f1ino que impide contribuir',body:'<p>Solo doctores de Stanford pueden contribuir a la IA? Falso. Los contribuidores m\u00e1s importantes incluyen autodidactas que simplemente <em>publicaron su trabajo con rigor</em>.</p><h4>Caminos reales</h4><p><strong>Benchmarks y eval datasets:</strong> Requiere conocimiento de dominio, no matem\u00e1ticas avanzadas.</p><p><strong>Replicaciones:</strong> La comunidad tiene un problema serio de replicaci\u00f3n.</p><p><strong>Applied research:</strong> Conectar investigaci\u00f3n con tu dominio espec\u00edfico.</p><div class="callout" style="border-color:#5bb8ff;background:rgba(91,184,255,.06)"><div class="cl-t" style="color:#5bb8ff">El camino de 3 a\u00f1os</div><div class="cl-b"><strong>A\u00f1o 1:</strong> Replica 3 papers en tu dominio + publica an\u00e1lisis<br><strong>A\u00f1o 2:</strong> Identifica un gap + dise\u00f1a experimento<br><strong>A\u00f1o 3:</strong> Workshop en NeurIPS, ICML o ACL<br>Sin instituci\u00f3n ni t\u00edtulo requeridos.</div></div>'},
+{P:true,tag:'Plan Final',title:'El plan de contribuci\u00f3n que ejecutar\u00e1s',
+task:'El ejercicio final del programa.\n\nUsa Claude:\n"Eres mi advisor en IA. Mi perfil: [describe TODO \u2014 experiencia, conocimiento adquirido, pasiones, tiempo disponible]. Dise\u00f1a mi plan de contribuci\u00f3n para los pr\u00f3ximos 12 meses:\n1. Mi \u00e1ngulo \u00fanico \u2014 d\u00f3nde mi background + IA = algo \u00fanico\n2. Mes a mes: qu\u00e9 produzco, publico, construyo\n3. Las 5 personas clave con las que conectar y c\u00f3mo\n4. Un proyecto completable en 6 meses\n5. C\u00f3mo mido progreso mensual\n6. Los 3 obst\u00e1culos m\u00e1s probables y c\u00f3mo los supero"\n\nEdita el plan. Escribe el primer post de LinkedIn. Declara tu compromiso de 48 horas.',
+ph:'\u2022 El plan editado y personalizado\n\u2022 Primer post de LinkedIn\n\u2022 \u00bfQu\u00e9 te emociona m\u00e1s? \u00bfQu\u00e9 genera m\u00e1s resistencia?\n\u2022 El primer paso en 48 horas (concreto, no vago)',
+ev:'Eval\u00faa este plan final.\n1. \u00bfEl \u00e1ngulo \u00fanico es genuinamente \u00fanico?\n2. \u00bfEl plan mes a mes es realista?\n3. \u00bfLas 5 conexiones son estrat\u00e9gicas?\n4. \u00bfEl proyecto tiene scope acotado para 6 meses?\n5. \u00bfLa m\u00e9trica de progreso es medible?\n6. \u00bfEl primer paso en 48h es real o evasivo?\nS\u00e9 el advisor m\u00e1s honesto que haya tenido. En espa\u00f1ol.'}
+]}
+]}
+]}
+];
+
+// ============================================================
+// AUTH
+// ============================================================
+var CU = null;
+
+function hash(s) {
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+  return Math.abs(h).toString(36);
+}
+function getUsers() { try { return JSON.parse(localStorage.getItem('aim_u') || '{}'); } catch(e) { return {}; } }
+function saveUsers(u) { localStorage.setItem('aim_u', JSON.stringify(u)); }
+function authErr(m) { var e = document.getElementById('a-err'); e.textContent = m; e.classList.add('on'); }
+function clearErr() { document.getElementById('a-err').classList.remove('on'); }
+
+function showReg() {
+  clearErr();
+  document.getElementById('f-login').style.display = 'none';
+  document.getElementById('f-reg').style.display = '';
+}
+function showLogin() {
+  clearErr();
+  document.getElementById('f-reg').style.display = 'none';
+  document.getElementById('f-login').style.display = '';
+}
+
+function doLogin() {
+  clearErr();
+  var em = document.getElementById('l-email').value.trim().toLowerCase();
+  var pw = document.getElementById('l-pass').value;
+  if (!em || !pw) { authErr('Completa todos los campos.'); return; }
+  var users = getUsers();
+  var u = users[em];
+  if (!u) { authErr('No encontramos esa cuenta. Crea una nueva.'); return; }
+  if (u.ph !== hash(pw + em)) { authErr('Contrase\u00f1a incorrecta.'); return; }
+  loginOK(u);
+}
+
+function doReg() {
+  clearErr();
+  var nm = document.getElementById('r-name').value.trim();
+  var em = document.getElementById('r-email').value.trim().toLowerCase();
+  var pw = document.getElementById('r-pass').value;
+  if (!nm || !em || !pw) { authErr('Completa todos los campos.'); return; }
+  if (!em.includes('@') || !em.includes('.')) { authErr('Email no v\u00e1lido.'); return; }
+  if (pw.length < 6) { authErr('Contrase\u00f1a: m\u00ednimo 6 caracteres.'); return; }
+  var users = getUsers();
+  if (users[em]) { authErr('Ya existe una cuenta con ese email.'); return; }
+  var nu = { email: em, name: nm, ph: hash(pw + em), progress: { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null } };
+  users[em] = nu;
+  saveUsers(users);
+  loginOK(nu);
+}
+
+function guestMode() {
+  var progress = { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null };
+  CU = { email: 'guest', name: 'T\u00fa', isGuest: true, progress: progress };
+  ST = progress;
+  startApp();
+}
+
+function loginOK(u) {
+  CU = u;
+  ST = u.progress;
+  localStorage.setItem('aim_cu', u.email);
+  startApp();
+}
+
+function startApp() {
+  document.getElementById('sc-auth').classList.remove('on');
+  document.getElementById('tab-bar').style.display = '';
+  goTab('home');
+}
+
+function logout() {
+  saveST();
+  localStorage.removeItem('aim_cu');
+  CU = null;
+  ST = { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null };
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('on'); });
+  document.getElementById('tab-bar').style.display = 'none';
+  document.getElementById('sc-auth').classList.add('on');
+  document.getElementById('f-reg').style.display = 'none';
+  document.getElementById('f-login').style.display = '';
+  clearErr();
+}
+
+// Enter key support
+document.getElementById('l-pass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('l-email').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('l-pass').focus(); });
+document.getElementById('r-pass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doReg(); });
+
+// ============================================================
+// STATE
+// ============================================================
+var ST = { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null };
+
+function saveST() {
+  if (!CU) return;
+  CU.progress = ST;
+  if (!CU.isGuest) {
+    var users = getUsers();
+    users[CU.email] = CU;
+    saveUsers(users);
+  }
+}
+
+function markStudied() {
+  var t = new Date().toDateString();
+  if (ST.last === t) return;
+  var y = new Date(Date.now() - 86400000).toDateString();
+  ST.streak = (ST.last === y) ? (ST.streak || 0) + 1 : 1;
+  ST.last = t;
+  saveST();
+}
+
+function lvlP(lv) {
+  var all = lv.mods.reduce(function(a, m) { return a.concat(m.lessons || []); }, []);
+  var dn = all.filter(function(l) { return ST.done[l.id]; }).length;
+  return { done: dn, total: all.length, pct: all.length ? Math.round(dn / all.length * 100) : 0 };
+}
+
+function isUL(lv) {
+  if (!lv.unlock) return true;
+  var p = null;
+  for (var i = 0; i < LV.length; i++) { if (LV[i].id === lv.unlock) { p = LV[i]; break; } }
+  return !p || lvlP(p).pct >= lv.unlockPct;
+}
+
+function fL(lid) {
+  for (var i = 0; i < LV.length; i++) {
+    for (var j = 0; j < LV[i].mods.length; j++) {
+      var ls = LV[i].mods[j].lessons || [];
+      for (var k = 0; k < ls.length; k++) { if (ls[k].id === lid) return ls[k]; }
+    }
+  }
+  return null;
+}
+function fM(mid, lvid) {
+  for (var i = 0; i < LV.length; i++) {
+    if (LV[i].id === lvid) {
+      for (var j = 0; j < LV[i].mods.length; j++) { if (LV[i].mods[j].id === mid) return LV[i].mods[j]; }
+    }
+  }
+  return null;
+}
+function fLv(id) { for (var i = 0; i < LV.length; i++) { if (LV[i].id === id) return LV[i]; } return null; }
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+var _back = 'home', _lastLv = null, _CL = null, _CM = null, _CLv = null;
+
+function goTab(t) {
+  document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('on'); });
+  var el = document.getElementById('tab-' + t);
+  if (el) el.classList.add('on');
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('on'); });
+  if (t === 'home') { renderHome(); show('sc-home'); }
+  else if (t === 'path') { renderPath(); show('sc-path'); }
+  else if (t === 'live') { show('sc-live'); loadLive(); }
+  else if (t === 'profile') { renderProfile(); show('sc-profile'); }
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('on'); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add('on');
+}
+
+function goBack() {
+  if (_back === 'level' && _lastLv) { renderLevel(_lastLv); show('sc-level'); }
+  else if (_back === 'path') { renderPath(); show('sc-path'); document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); }); var p = document.getElementById('tab-path'); if (p) p.classList.add('on'); }
+  else goTab('home');
+}
+
+function goLevel(lv) { _lastLv = lv; renderLevel(lv); show('sc-level'); }
+
+// ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  var all = [];
+  LV.forEach(function(l) { l.mods.forEach(function(m) { (m.lessons || []).forEach(function(x) { all.push(x); }); }); });
+  var nd = Object.keys(ST.done).length;
+  var pct = all.length ? Math.round(nd / all.length * 100) : 0;
+  var nL = null, nM = null, nLv = null;
+  outer: for (var i = 0; i < LV.length; i++) {
+    if (!isUL(LV[i])) continue;
+    for (var j = 0; j < LV[i].mods.length; j++) {
+      var ls = LV[i].mods[j].lessons || [];
+      for (var k = 0; k < ls.length; k++) {
+        if (!ST.done[ls[k].id]) { nL = ls[k]; nM = LV[i].mods[j]; nLv = LV[i]; break outer; }
+      }
+    }
+  }
+
+  var sc = document.getElementById('sc-home');
+  var lvHtml = '';
+  LV.forEach(function(lv) {
+    var ul = isUL(lv);
+    var prog = lvlP(lv);
+    lvHtml += '<div class="lv-row' + (ul ? '' : ' locked') + '" id="lvi-' + lv.id + '" style="border-color:' + (ul ? lv.color + '44' : 'var(--border)') + '">';
+    lvHtml += '<div class="lv-ico" style="background:' + lv.bg + '">' + lv.emoji + '</div>';
+    lvHtml += '<div class="lv-info">';
+    lvHtml += '<div class="lv-tag" style="color:' + lv.color + '">' + lv.num + ' \u2014 ' + lv.tagline + '</div>';
+    lvHtml += '<div class="lv-name">' + lv.name + '</div>';
+    lvHtml += '<div class="lv-dur">' + lv.dur + '</div>';
+    lvHtml += '<div class="lv-pb"><div class="lv-pf" style="width:' + prog.pct + '%;background:' + lv.color + '"></div></div>';
+    lvHtml += '</div>';
+    lvHtml += '<div class="lv-pr" style="color:' + lv.color + '">' + (ul ? prog.done + '/' + prog.total : '\u{1F512}') + '</div>';
+    lvHtml += '</div>';
+  });
+
+  var nextHtml = '';
+  if (nL) {
+    nextHtml = '<button class="next-btn" id="nb"><div class="next-ico">' + nM.icon + '</div><div class="nh"><h3>' + nL.title + '</h3><p>' + nLv.num + ' ' + nLv.name + ' \u00b7 ' + nL.mins + ' min</p></div><div class="na">\u25B6</div></button>';
+  } else {
+    nextHtml = '<div class="next-btn" style="cursor:default"><div class="next-ico">\u{1F3C6}</div><div class="nh"><h3>\u00a1Programa completado!</h3><p>Eres AI Master \u{1F389}</p></div></div>';
+  }
+
+  var userGreet = CU ? '<div class="hero-u">\u{1F44B} Hola, ' + CU.name + (CU.isGuest ? ' (modo invitada)' : '') + '</div>' : '';
+
+  sc.innerHTML = '<div class="w">'
+    + '<div class="hero">'
+    + userGreet
+    + '<h1>Convi\u00e9rtete en <span style="color:var(--n1)">AI Expert</span></h1>'
+    + '<p>5 niveles \u00b7 De cero a investigadora que contribuye al campo \u00b7 15 min/d\u00eda</p>'
+    + '<div class="pb-w"><div class="pb-r"><span>PROGRESO TOTAL</span><span>' + pct + '% \u00b7 ' + nd + '/' + all.length + '</span></div>'
+    + '<div class="pb-t"><div class="pb-f" style="width:' + pct + '%"></div></div></div>'
+    + '</div>'
+    + '<div class="stats">'
+    + '<div class="stat"><div class="sv" style="color:var(--n1)">' + ST.xp + '</div><div class="sl">XP</div></div>'
+    + '<div class="stat"><div class="sv" style="color:var(--n2)">\u{1F525}' + (ST.streak || 0) + '</div><div class="sl">RACHA</div></div>'
+    + '<div class="stat"><div class="sv" style="color:var(--n5)">' + nd + '</div><div class="sl">LECCIONES</div></div>'
+    + '</div>'
+    + nextHtml
+    + '<div class="sh">LOS 5 NIVELES</div>'
+    + lvHtml
+    + '</div>';
+
+  if (nL) {
+    var nb = document.getElementById('nb');
+    if (nb) {
+      (function(lesson, mod, lvl) {
+        nb.addEventListener('click', function() { openLesson(lesson, mod, lvl, 'home'); });
+      })(nL, nM, nLv);
+    }
+  }
+  LV.forEach(function(lv) {
+    var el = document.getElementById('lvi-' + lv.id);
+    if (el && isUL(lv)) {
+      (function(lvl) { el.addEventListener('click', function() { goLevel(lvl); }); })(lv);
+    }
+  });
+}
+
+// ============================================================
+// PATH
+// ============================================================
+function renderPath() {
+  var sc = document.getElementById('sc-path');
+  var html = '<div class="w">';
+  LV.forEach(function(lv) {
+    var ul = isUL(lv);
+    var prog = lvlP(lv);
+    html += '<div class="plh" id="plh-' + lv.id + '" style="opacity:' + (ul ? 1 : .45) + ';border-color:' + (ul ? lv.color + '44' : 'var(--border)') + '">';
+    html += '<div class="plh-b" style="background:' + lv.bg + '">' + lv.emoji + '</div>';
+    html += '<div style="flex:1;min-width:0"><div class="plh-n" style="color:' + lv.color + '">' + lv.num + ' \u2014 ' + lv.name + '</div>';
+    html += '<div class="plh-s">' + lv.tagline + '</div>';
+    html += '<div class="plh-pb"><div class="plh-pf" style="width:' + prog.pct + '%;background:' + lv.color + '"></div></div></div>';
+    html += '<div style="font-size:13px;font-weight:900;color:' + lv.color + ';flex-shrink:0">' + (ul ? prog.done + '/' + prog.total : '\u{1F512}') + '</div>';
+    html += '</div>';
+    if (!ul) return;
+    var allL = [];
+    lv.mods.forEach(function(m) { (m.lessons || []).forEach(function(l) { allL.push({ id: l.id, icon: m.icon, title: l.title, mid: m.id }); }); });
+    var offs = [0, 55, 95, 55];
+    html += '<div class="nodes">';
+    allL.forEach(function(l, i) {
+      var isDone = !!ST.done[l.id];
+      var locked = i > 0 && !ST.done[allL[i - 1].id];
+      var isCur = !isDone && !locked;
+      var off = offs[i % 4];
+      if (i > 0) {
+        var prevOff = offs[(i - 1) % 4];
+        html += '<div class="conn' + (ST.done[allL[i - 1].id] ? ' done' : '') + '" style="margin-left:' + (prevOff + 30) + 'px"></div>';
+      }
+      html += '<div class="node-col" style="margin-left:' + off + 'px" id="nd-' + l.id + '">';
+      html += '<div class="pnode' + (isDone ? '' : isCur ? ' cur' : ' locked') + '" style="background:' + (isDone ? lv.color : isCur ? lv.bg : 'var(--card2)') + ';border-color:' + lv.color + ';--gc:' + lv.color + '66">';
+      html += '<span>' + l.icon + '</span>';
+      if (isDone) html += '<div class="ncheck">\u2713</div>';
+      html += '</div>';
+      html += '<div class="node-lbl" style="color:' + (isCur ? lv.color : 'var(--sub)') + '">' + l.title + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  sc.innerHTML = html;
+
+  LV.forEach(function(lv) {
+    var hd = document.getElementById('plh-' + lv.id);
+    if (hd && isUL(lv)) { (function(lvl) { hd.addEventListener('click', function() { goLevel(lvl); }); })(lv); }
+    if (!isUL(lv)) return;
+    var allL = [];
+    lv.mods.forEach(function(m) { (m.lessons || []).forEach(function(l) { allL.push({ id: l.id, mid: m.id }); }); });
+    allL.forEach(function(l, i) {
+      var locked = i > 0 && !ST.done[allL[i - 1].id];
+      if (!locked) {
+        var el = document.getElementById('nd-' + l.id);
+        if (el) {
+          (function(lid, mid, lvl) {
+            el.addEventListener('click', function() { openLesson(fL(lid), fM(mid, lvl.id), lvl, 'path'); });
+          })(l.id, l.mid, lv);
+        }
+      }
+    });
+  });
+}
+
+// ============================================================
+// LEVEL
+// ============================================================
+function renderLevel(lv) {
+  _lastLv = lv;
+  var prog = lvlP(lv);
+  var mpD = !!ST.mp[lv.mp && lv.mp.id];
+  var sc = document.getElementById('sc-level');
+  var html = '<div class="top-bar"><button class="bk" id="lv-bk">\u2190</button><div class="tbi"><h2 style="color:' + lv.color + '">' + lv.emoji + ' ' + lv.name + '</h2><p>' + lv.tagline + ' \u00b7 ' + prog.done + '/' + prog.total + '</p></div></div>';
+  html += '<div class="w">';
+  html += '<div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:18px"><div style="height:100%;width:' + prog.pct + '%;background:' + lv.color + ';border-radius:4px"></div></div>';
+  html += '<div class="mp-box" style="border-color:' + lv.color + '44">';
+  html += '<div class="mp-lbl" style="color:' + lv.color + '">\u{1F3C6} MINI-PROYECTO</div>';
+  html += '<div class="mp-title">' + (lv.mp ? lv.mp.title : '') + '</div>';
+  html += '<div class="mp-desc">' + (lv.mp ? lv.mp.desc : '') + '</div>';
+  if (mpD) {
+    html += '<div style="display:inline-flex;align-items:center;gap:6px;background:' + lv.bg + ';border:2px solid ' + lv.color + '55;border-radius:10px;padding:6px 14px;font-size:13px;font-weight:900;color:' + lv.color + '">\u2713 Completado</div>';
+  } else if (prog.done >= Math.floor(prog.total * .8)) {
+    html += '<button class="btn pri" id="mp-btn" style="background:' + lv.color + '">\u2713 Marcar como completado</button>';
+  } else {
+    html += '<div style="font-size:12px;color:var(--sub)">Disponible al completar el 80% (' + prog.done + '/' + prog.total + ' ahora)</div>';
+  }
+  html += '</div>';
+  html += '<div class="sh">LECCIONES</div>';
+
+  lv.mods.forEach(function(mod, mi) {
+    html += '<div style="font-size:12px;font-weight:900;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin:14px 0 8px">' + mod.icon + ' ' + mod.title + '</div>';
+    var prevMod = mi > 0 ? lv.mods[mi - 1] : null;
+    (mod.lessons || []).forEach(function(l, li) {
+      var isDone = !!ST.done[l.id];
+      var prevLessons = prevMod ? prevMod.lessons || [] : [];
+      var prevL = li > 0 ? mod.lessons[li - 1] : (prevLessons.length ? prevLessons[prevLessons.length - 1] : null);
+      var locked = prevL && !ST.done[prevL.id];
+      html += '<div class="mi' + (locked ? ' locked' : '') + '" id="mi-' + l.id + '" style="border-color:' + (isDone ? lv.color + '55' : locked ? 'var(--border)' : lv.color + '22') + '">';
+      html += '<div class="mi-ico" style="background:' + (isDone ? lv.color : 'var(--card2)') + '">' + (isDone ? '\u2713' : locked ? '\u{1F512}' : mod.icon) + '</div>';
+      html += '<div style="flex:1;min-width:0"><div class="mi-t">' + l.title + '</div><div class="mi-s">' + l.mins + ' min</div></div>';
+      if (isDone) html += '<div class="mi-ck" style="color:' + lv.color + '">\u2713</div>';
+      html += '</div>';
+    });
+  });
+  html += '</div>';
+  sc.innerHTML = html;
+
+  document.getElementById('lv-bk').addEventListener('click', goBack);
+  var mpBtn = document.getElementById('mp-btn');
+  if (mpBtn) {
+    (function(mpId, lvl) { mpBtn.addEventListener('click', function() { ST.mp[mpId] = true; saveST(); toast('\u{1F3C6} Mini-proyecto completado!'); renderLevel(lvl); }); })(lv.mp.id, lv);
+  }
+  lv.mods.forEach(function(mod, mi) {
+    var prevMod = mi > 0 ? lv.mods[mi - 1] : null;
+    (mod.lessons || []).forEach(function(l, li) {
+      var prevLessons = prevMod ? prevMod.lessons || [] : [];
+      var prevL = li > 0 ? mod.lessons[li - 1] : (prevLessons.length ? prevLessons[prevLessons.length - 1] : null);
+      var locked = prevL && !ST.done[prevL.id];
+      if (!locked) {
+        var el = document.getElementById('mi-' + l.id);
+        if (el) { (function(lesson, m, lvl) { el.addEventListener('click', function() { openLesson(lesson, m, lvl, 'level'); }); })(l, mod, lv); }
+      }
+    });
+  });
+}
+
+// ============================================================
+// LESSON
+// ============================================================
+function openLesson(lesson, mod, lv, bt) {
+  if (!lesson || !mod || !lv) return;
+  _CL = lesson; _CM = mod; _CLv = lv; _back = bt || 'home';
+  markStudied();
+  renderStep(0);
+  show('sc-lesson');
+}
+
+function renderStep(idx) {
+  var lesson = _CL, step = lesson.steps[idx], lc = _CLv.color;
+  var total = lesson.steps.length, isLast = idx === total - 1, hasPrev = idx > 0;
+
+  var dots = '';
+  for (var i = 0; i < total; i++) {
+    dots += '<div class="sdot' + (i < idx ? ' done' : i === idx ? ' active' : '') + '"></div>';
+  }
+
+  var content = '';
+  if (step.T) {
+    content = '<div class="th-card">'
+      + '<div class="th-tag" style="background:' + _CLv.bg + ';color:' + lc + '">' + step.tag + '</div>'
+      + '<div class="th-title">' + step.title + '</div>'
+      + '<div class="th-body">' + step.body + '</div>'
+      + '</div>';
+  } else if (step.P) {
+    window._curTask = step.task;
+    window._curEv = step.ev;
+    content = '<div class="ex-card" style="border-color:' + lc + '33">'
+      + '<div class="ex-lbl">\u270F\uFE0F ' + step.tag + '</div>'
+      + '<div class="ex-task">' + step.task + '</div>'
+      + '</div>'
+      + '<div class="eval-box" style="border-color:' + lc + '33">'
+      + '<div class="eval-lbl" style="color:' + lc + '">\u{1F916} La IA eval\u00faa tu respuesta</div>'
+      + '<textarea class="eval-ta" id="eval-ta" placeholder="' + step.ph + '" rows="5"></textarea>'
+      + '<div class="eval-btns">'
+      + '<button class="ev-btn" id="ev-btn" style="background:' + lc + ';color:#0a0a0a">\u2736 Evaluar</button>'
+      + '<button class="hint-btn" id="hint-btn" title="Pista">\u{1F4A1}</button>'
+      + '</div>'
+      + '<div class="ai-resp" id="ai-resp"></div>'
+      + '</div>';
+  }
+
+  var sc = document.getElementById('sc-lesson');
+  sc.innerHTML = '<div class="top-bar">'
+    + '<button class="bk" id="l-bk">\u2190</button>'
+    + '<div class="tbi"><h2>' + lesson.title + '</h2><p style="color:' + lc + '">' + _CLv.num + ' ' + _CLv.name + ' \u00b7 ' + _CM.title + '</p></div>'
+    + '</div>'
+    + '<div class="w">'
+    + '<div class="sdots">' + dots + '</div>'
+    + content
+    + '<div class="step-nav">'
+    + (hasPrev ? '<button class="nav-p" id="p-btn">\u2190</button>' : '<div></div>')
+    + '<button class="nav-n" id="n-btn" style="background:' + lc + '">' + (isLast ? 'Completar \u2713' : 'Siguiente \u2192') + '</button>'
+    + '</div>'
+    + '</div>';
+
+  sc.scrollTop = 0;
+
+  document.getElementById('l-bk').addEventListener('click', goBack);
+  if (hasPrev) { (function(i) { document.getElementById('p-btn').addEventListener('click', function() { renderStep(i - 1); }); })(idx); }
+  (function(i, last) { document.getElementById('n-btn').addEventListener('click', function() { if (last) finLesson(); else renderStep(i + 1); }); })(idx, isLast);
+
+  if (step.P) {
+    var ta = document.getElementById('eval-ta');
+    if (ta) {
+      ta.addEventListener('focus', function() { ta.style.borderColor = lc; });
+      ta.addEventListener('blur', function() { ta.style.borderColor = 'var(--border)'; });
+      ta.addEventListener('input', function() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 240) + 'px'; });
+    }
+    document.getElementById('ev-btn').addEventListener('click', doEval);
+    document.getElementById('hint-btn').addEventListener('click', doHint);
+  }
+}
+
+function doEval() {
+  var ta = document.getElementById('eval-ta');
+  var resp = document.getElementById('ai-resp');
+  var btn = document.getElementById('ev-btn');
+  var t = ta ? ta.value.trim() : '';
+  if (!t || t.length < 15) { toast('\u270D\uFE0F Escribe al menos 15 caracteres'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Evaluando...';
+  resp.className = 'ai-resp on';
+  resp.innerHTML = '<span style="color:var(--sub)">Analizando tu respuesta...</span>';
+  var ev = window._curEv || '';
+  var body = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 700, messages: [{ role: 'user', content: ev + '\n\nRESPUESTA DEL ESTUDIANTE:\n"' + t + '"' }] });
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var txt = (d.content || []).map(function(b) { return b.text || ''; }).join('');
+      txt = txt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+      resp.innerHTML = txt;
+      ST.xp += 20; saveST(); toast('\u26A1 +20 XP');
+    })
+    .catch(function(e) { resp.innerHTML = '<span style="color:var(--sub)">Error de conexi\u00f3n. Intenta de nuevo.</span>'; })
+    .finally(function() { btn.disabled = false; btn.innerHTML = '\u2736 Evaluar'; });
+}
+
+function doHint() {
+  var resp = document.getElementById('ai-resp');
+  resp.className = 'ai-resp on';
+  resp.innerHTML = '<span style="color:var(--sub)">Generando pista...</span>';
+  var task = window._curTask || '';
+  var prompt = 'Da una pista breve (3 oraciones) para este ejercicio sin dar la respuesta directamente:\n\n' + task + '\n\nEn espa\u00f1ol, tono de mentora.';
+  var body = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 220, messages: [{ role: 'user', content: prompt }] });
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var txt = (d.content || []).map(function(b) { return b.text || ''; }).join('').replace(/\n/g, '<br>');
+      resp.innerHTML = '<strong style="color:var(--n2)">\u{1F4A1} Pista</strong><br><br>' + txt;
+    })
+    .catch(function() { resp.innerHTML = '<span style="color:var(--sub)">Error al obtener pista.</span>'; });
+}
+
+function finLesson() {
+  ST.done[_CL.id] = true; ST.xp += 50; saveST();
+  var lc = _CLv ? _CLv.color : '#58f5c4';
+  var emos = { n1: '\u{1F331}', n2: '\u26A1', n3: '\u{1F527}', n4: '\u{1F3D7}\uFE0F', n5: '\u{1F52D}' };
+  var sc = document.getElementById('sc-lesson');
+  sc.innerHTML = '<div class="done-scr">'
+    + '<div class="done-e">' + (emos[_CLv && _CLv.id] || '\u{1F389}') + '</div>'
+    + '<div class="done-t">\u00a1Completada!</div>'
+    + '<div class="done-s">' + _CL.title + '</div>'
+    + '<div class="xpb" style="background:' + (_CLv ? _CLv.bg : 'rgba(88,245,196,.1)') + ';color:' + lc + ';border:2px solid ' + lc + '55">\u26A1 +50 XP</div>'
+    + '<button class="done-btn" id="db1" style="background:' + lc + ';color:#0a0a0a">' + (_back === 'level' ? '\u2190 Volver al nivel' : '\u2190 Inicio') + '</button>'
+    + '<button class="done-btn ghost" id="db2">Ver mi ruta \u{1F5FA}\uFE0F</button>'
+    + '</div>';
+  document.getElementById('db1').addEventListener('click', goBack);
+  document.getElementById('db2').addEventListener('click', function() { goTab('path'); });
+  toast('\u{1F389} +50 XP \u2014 \u00a1Excelente trabajo!');
+}
+
+// ============================================================
+// LIVE
+// ============================================================
+var _liveLoading = false;
+
+function loadLive() {
+  if (_liveLoading) return;
+  _liveLoading = true;
+  var sc = document.getElementById('sc-live');
+  sc.innerHTML = '<div class="w"><div class="live-h">\u26A1 Novedades de IA</div><div class="live-s">Generando novedades...</div><div class="ldc"><div class="spin" style="width:28px;height:28px;border-width:3px"></div><p>Esto toma unos segundos</p></div></div>';
+
+  var prompt = 'Eres experta en IA y conoces el estado del arte a 2025. Lista las 6 novedades m\u00e1s importantes de IA de los \u00faltimos meses: Claude 4, GPT-4o, Gemini 2.5, Llama 4, agentes aut\u00f3nomos, EU AI Act, papers destacados, herramientas nuevas. Responde \u00danicamentE con un JSON array v\u00e1lido, sin texto antes ni despu\u00e9s, sin bloques de c\u00f3digo markdown: [{"title":"string","summary":"qu\u00e9 es y por qu\u00e9 importa en 2 oraciones","tag":"paper o model o tool o trend","depth":"implicaci\u00f3n pr\u00e1ctica en 1 oraci\u00f3n"}]';
+
+  var body = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1200, messages: [{ role: 'user', content: prompt }] });
+
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      _liveLoading = false;
+      var txt = (d.content || []).map(function(b) { return b.text || ''; }).join('').trim();
+      var news = [];
+      try {
+        var m = txt.match(/\[[\s\S]*\]/);
+        if (m) news = JSON.parse(m[0]);
+      } catch(e) {}
+      if (!news.length) {
+        news = [
+          { title: 'Claude Sonnet 4 y Opus 4 disponibles', summary: 'Anthropic lanz\u00f3 Claude 4 con mejoras en razonamiento y seguimiento de instrucciones. Sonnet 4 es el m\u00e1s adoptado para producci\u00f3n.', tag: 'model', depth: 'Usa claude-sonnet-4-20250514 en tus proyectos ahora.' },
+          { title: 'Llama 4 de Meta: MoE open source', summary: 'Meta lanz\u00f3 Llama 4 con arquitectura Mixture-of-Experts, compitiendo con GPT-4o siendo completamente open source.', tag: 'model', depth: 'Democratiza acceso a capacidades de frontera sin costos de API.' },
+          { title: 'Gemini 2.5 Pro: 1M tokens de contexto', summary: 'Google lanz\u00f3 Gemini 2.5 Pro con ventana de contexto de 1 mill\u00f3n de tokens, suficiente para analizar bases de c\u00f3digo completas.', tag: 'model', depth: 'Cambia el trade-off entre RAG y contexto directo para documentos largos.' },
+          { title: 'Agentes superan 50% en SWE-bench', summary: 'M\u00faltiples sistemas de agentes resuelven m\u00e1s del 50% de issues reales de software. Hace 18 meses el estado del arte era 2%.', tag: 'trend', depth: 'La curva de mejora en agentes es exponencial.' },
+          { title: 'EU AI Act: primeras obligaciones activas', summary: 'Las primeras obligaciones del EU AI Act est\u00e1n vigentes. Sistemas de alto riesgo deben cumplir transparencia y auditor\u00eda.', tag: 'trend', depth: 'Compliance de IA = sector de alto valor para consultores.' },
+          { title: 'Mamba y arquitecturas post-Transformer', summary: 'Mamba, RWKV y otros state space models cuestionan si los Transformers son la arquitectura final.', tag: 'paper', depth: 'Si Mamba escala bien, el panorama de modelos cambia radicalmente.' }
+        ];
+      }
+      window._ln = news;
+      var tm = {
+        model: { lbl: 'MODELO', c: '#58f5c4', bg: 'rgba(88,245,196,.1)' },
+        paper: { lbl: 'PAPER', c: '#5bb8ff', bg: 'rgba(91,184,255,.1)' },
+        tool: { lbl: 'HERRAMIENTA', c: '#b97aff', bg: 'rgba(185,122,255,.1)' },
+        trend: { lbl: 'TENDENCIA', c: '#ffd166', bg: 'rgba(255,209,102,.1)' }
+      };
+      var html = '<div class="w"><div class="live-h">\u26A1 Novedades de IA</div><div class="live-s">Toca una tarjeta para generar una lecci\u00f3n pr\u00e1ctica al instante.</div>';
+      html += '<button class="btn ghost" id="ref-btn" style="margin-bottom:16px">\u{1F504} Actualizar</button>';
+      news.forEach(function(item, i) {
+        var t = tm[item.tag] || tm.trend;
+        html += '<div class="lcard" id="lc-' + i + '">';
+        html += '<div class="lc-h"><h3>' + item.title + '</h3><span class="ltag" style="background:' + t.bg + ';color:' + t.c + '">' + t.lbl + '</span></div>';
+        html += '<div class="lc-b">' + item.summary + '</div>';
+        if (item.depth) html += '<div class="lc-d">\u2192 ' + item.depth + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      sc.innerHTML = html;
+
+      document.getElementById('ref-btn').addEventListener('click', function() { _liveLoading = false; loadLive(); });
+      news.forEach(function(item, i) {
+        var el = document.getElementById('lc-' + i);
+        if (el) { (function(idx) { el.addEventListener('click', function() { genLiveLesson(idx); }); })(i); }
+      });
+    })
+    .catch(function(e) {
+      _liveLoading = false;
+      sc.innerHTML = '<div class="w"><div class="live-h">\u26A1 Novedades</div><div style="padding:20px;text-align:center;color:var(--sub)">Error al cargar.</div><button class="btn pri" id="retry-btn" style="background:var(--n1);color:#000;margin:16px">Reintentar</button></div>';
+      var rb = document.getElementById('retry-btn');
+      if (rb) rb.addEventListener('click', function() { _liveLoading = false; loadLive(); });
+    });
+}
+
+function genLiveLesson(idx) {
+  var item = window._ln && window._ln[idx];
+  if (!item) return;
+  var sc = document.getElementById('sc-lesson');
+  sc.innerHTML = '<div class="top-bar"><button class="bk" id="lb-bk">\u2190</button><div class="tbi"><h2>' + item.title + '</h2><p style="color:var(--live)">\u26A1 LIVE</p></div></div><div class="w"><div class="ldc"><div class="spin" style="width:26px;height:26px;border-width:3px;border-top-color:var(--live);border-color:rgba(255,140,66,.2)"></div><p>Generando lecci\u00f3n pr\u00e1ctica...</p></div></div>';
+  show('sc-lesson');
+  document.getElementById('lb-bk').addEventListener('click', function() { goTab('live'); });
+
+  var prompt = 'Lecci\u00f3n de 12 min sobre:\nT\u00cdTULO: ' + item.title + '\nRESUMEN: ' + item.summary + '\nIMPACTO: ' + (item.depth || '') + '\n\nResponde \u00danicamentE con JSON v\u00e1lido sin texto extra ni markdown: {"context":"HTML 150 palabras: qu\u00e9 es y por qu\u00e9 importa","impact":"HTML 80 palabras: impacto en industria","exercise":"Tarea ejecutable hoy en 20 min","placeholder":"Ejemplo de respuesta excelente","eval":"Criterios de evaluaci\u00f3n. Busca comprensi\u00f3n t\u00e9cnica real."}';
+  var body = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
+
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var txt = (d.content || []).map(function(b) { return b.text || ''; }).join('').trim();
+      var L = null;
+      try {
+        var m = txt.match(/\{[\s\S]*\}/);
+        if (m) L = JSON.parse(m[0]);
+      } catch(e) {}
+      if (!L) L = { context: '<p>' + item.summary + '</p>', impact: '<p>' + (item.depth || '') + '</p>', exercise: 'Investiga "' + item.title + '" en profundidad. Identifica 3 aplicaciones concretas en un sector de tu inter\u00e9s.', placeholder: 'An\u00e1lisis t\u00e9cnico + 3 aplicaciones con justificaci\u00f3n', eval: 'Eval\u00faa comprensi\u00f3n t\u00e9cnica real, no descripci\u00f3n superficial.' };
+
+      window._liveEval = L.eval;
+      sc.innerHTML = '<div class="top-bar"><button class="bk" id="lb-bk2">\u2190</button><div class="tbi"><h2>' + item.title + '</h2><p style="color:var(--live)">\u26A1 LIVE</p></div></div>'
+        + '<div class="w">'
+        + '<div class="th-card" style="border-color:rgba(255,140,66,.25)">'
+        + '<div class="th-tag" style="background:rgba(255,140,66,.1);color:var(--live)">\u26A1 Novedad</div>'
+        + '<div class="th-title">' + item.title + '</div>'
+        + '<div class="th-body"><h4>\u00bfQu\u00e9 es y por qu\u00e9 importa?</h4>' + L.context + '<h4>Impacto en industria</h4>' + L.impact + '</div>'
+        + '</div>'
+        + '<div class="ex-card" style="border-color:rgba(255,140,66,.25)">'
+        + '<div class="ex-lbl" style="color:var(--live)">\u{1F6E0}\uFE0F Ejercicio</div>'
+        + '<div class="ex-task">' + L.exercise + '</div>'
+        + '</div>'
+        + '<div class="eval-box" style="border-color:rgba(255,140,66,.2)">'
+        + '<div class="eval-lbl" style="color:var(--live)">\u{1F916} La IA eval\u00faa tu comprensi\u00f3n</div>'
+        + '<textarea class="eval-ta" id="live-ta" placeholder="' + L.placeholder + '" rows="5"></textarea>'
+        + '<div class="eval-btns"><button class="ev-btn" id="live-ev" style="background:var(--live);color:#0a0a0a">\u2736 Evaluar</button></div>'
+        + '<div class="ai-resp" id="live-resp"></div>'
+        + '</div>'
+        + '<button class="btn pri" id="live-done" style="background:var(--live)">Completar lecci\u00f3n +30 XP</button>'
+        + '</div>';
+
+      document.getElementById('lb-bk2').addEventListener('click', function() { goTab('live'); });
+      document.getElementById('live-done').addEventListener('click', function() { ST.xp += 30; saveST(); toast('\u2736 +30 XP'); goTab('live'); });
+
+      var lt = document.getElementById('live-ta');
+      if (lt) {
+        lt.addEventListener('focus', function() { lt.style.borderColor = 'var(--live)'; });
+        lt.addEventListener('blur', function() { lt.style.borderColor = 'var(--border)'; });
+        lt.addEventListener('input', function() { lt.style.height = 'auto'; lt.style.height = Math.min(lt.scrollHeight, 240) + 'px'; });
+      }
+
+      document.getElementById('live-ev').addEventListener('click', function() {
+        var ta = document.getElementById('live-ta');
+        var resp = document.getElementById('live-resp');
+        var btn = document.getElementById('live-ev');
+        var t = ta ? ta.value.trim() : '';
+        if (!t || t.length < 15) { toast('\u270D\uFE0F Escribe al menos 15 caracteres'); return; }
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div>';
+        resp.className = 'ai-resp on'; resp.innerHTML = '<span style="color:var(--sub)">Evaluando...</span>';
+        var ev = window._liveEval || '';
+        var b2 = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, messages: [{ role: 'user', content: ev + '\n\nRESPUESTA:\n"' + t + '"' }] });
+        fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: b2 })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var txt = (d.content || []).map(function(b) { return b.text || ''; }).join('').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            resp.innerHTML = txt; ST.xp += 15; saveST(); toast('\u26A1 +15 XP');
+          })
+          .catch(function() { resp.innerHTML = '<span style="color:var(--sub)">Error.</span>'; })
+          .finally(function() { btn.disabled = false; btn.innerHTML = '\u2736 Evaluar'; });
+      });
+    })
+    .catch(function() {
+      sc.innerHTML = '<div class="w"><div class="ldc"><p>Error al generar la lecci\u00f3n.</p><button class="btn pri" id="lb-bk3" style="background:var(--n1);color:#000;margin-top:12px">\u2190 Volver</button></div></div>';
+      document.getElementById('lb-bk3').addEventListener('click', function() { goTab('live'); });
+    });
+}
+
+// ============================================================
+// PROFILE
+// ============================================================
+function renderProfile() {
+  var all = [];
+  LV.forEach(function(l) { l.mods.forEach(function(m) { (m.lessons || []).forEach(function(x) { all.push(x); }); }); });
+  var nd = Object.keys(ST.done).length;
+  var curLv = LV[0];
+  for (var i = 0; i < LV.length; i++) { if (isUL(LV[i])) curLv = LV[i]; }
+
+  var lvProgress = '';
+  LV.forEach(function(lv) {
+    var p = lvlP(lv); var ul = isUL(lv);
+    lvProgress += '<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;margin-bottom:10px;display:flex;align-items:center;gap:12px;opacity:' + (ul ? 1 : .4) + '">';
+    lvProgress += '<div style="font-size:22px">' + lv.emoji + '</div>';
+    lvProgress += '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;margin-bottom:5px">' + lv.num + ' ' + lv.name + '</div>';
+    lvProgress += '<div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + (ul ? p.pct : 0) + '%;background:' + lv.color + ';border-radius:3px"></div></div></div>';
+    lvProgress += '<div style="font-size:13px;font-weight:900;color:' + lv.color + ';flex-shrink:0">' + (ul ? p.done + '/' + p.total : '\u{1F512}') + '</div>';
+    lvProgress += '</div>';
+  });
+
+  var sc = document.getElementById('sc-profile');
+  sc.innerHTML = '<div class="w">'
+    + '<div class="ph"><div class="p-av">' + curLv.emoji + '</div>'
+    + '<div class="p-n">' + (CU ? CU.name : 'AI Master') + '</div>'
+    + '<div class="p-l" style="color:' + curLv.color + '">' + curLv.num + ' \u2014 ' + curLv.name + '</div>'
+    + (CU && !CU.isGuest ? '<div class="p-e">' + CU.email + '</div>' : CU && CU.isGuest ? '<div class="p-e">Modo invitada \u2014 progreso guardado localmente</div>' : '') + '</div>'
+    + '<div class="p-stats">'
+    + '<div class="ps"><div class="ps-v" style="color:var(--n1)">' + ST.xp + '</div><div class="ps-l">XP TOTAL</div></div>'
+    + '<div class="ps"><div class="ps-v" style="color:var(--n2)">\u{1F525} ' + (ST.streak || 0) + '</div><div class="ps-l">D\u00cdAS RACHA</div></div>'
+    + '<div class="ps"><div class="ps-v" style="color:var(--n5)">' + nd + '</div><div class="ps-l">LECCIONES</div></div>'
+    + '<div class="ps"><div class="ps-v" style="color:var(--n3)">' + (nd * 13) + 'm</div><div class="ps-l">ESTUDIADO</div></div>'
+    + '</div>'
+    + '<div class="sh">AJUSTES</div>'
+    + '<div class="p-row" id="rem-row"><div class="p-ri">\u23F0</div><div><div class="p-rh">Recordatorio diario</div><div class="p-rs">' + (ST.rem ? 'Configurado: ' + ST.rem : 'Sin configurar') + '</div></div><div class="p-ra">\u203A</div></div>'
+    + '<div class="p-row" id="save-row"><div class="p-ri">\u{1F4BE}</div><div><div class="p-rh">Exportar progreso</div><div class="p-rs">Genera un c\u00f3digo para otro dispositivo</div></div><div class="p-ra">\u203A</div></div>'
+    + '<div class="code-box" id="code-box"></div>'
+    + '<div class="p-row" id="restore-row"><div class="p-ri">\u267B\uFE0F</div><div><div class="p-rh">Restaurar progreso</div><div class="p-rs">Pega un c\u00f3digo de respaldo</div></div><div class="p-ra">\u203A</div></div>'
+    + '<div class="p-row" id="reset-row"><div class="p-ri">\u{1F5D1}\uFE0F</div><div><div class="p-rh" style="color:var(--n3)">Resetear progreso</div><div class="p-rs">Borra todo y empieza desde cero</div></div><div class="p-ra">\u203A</div></div>'
+    + '<div class="p-row" id="logout-row"><div class="p-ri">\u{1F6AA}</div><div><div class="p-rh">Cerrar sesi\u00f3n</div><div class="p-rs">' + (CU && CU.isGuest ? 'Salir del modo invitada' : (CU ? CU.email : '')) + '</div></div><div class="p-ra">\u203A</div></div>'
+    + '<div style="height:1px;background:var(--border);margin:16px 0"></div>'
+    + '<div class="sh">PROGRESO POR NIVEL</div>'
+    + lvProgress + '</div>';
+
+  document.getElementById('rem-row').addEventListener('click', openReminder);
+  document.getElementById('logout-row').addEventListener('click', function() { if (confirm('\u00bfCerrar sesi\u00f3n?')) logout(); });
+  document.getElementById('reset-row').addEventListener('click', function() {
+    if (confirm('\u00bfResetear TODO tu progreso? No se puede deshacer.')) { ST = { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null }; saveST(); toast('Progreso reseteado'); renderProfile(); }
+  });
+  document.getElementById('save-row').addEventListener('click', function() {
+    var code = btoa(JSON.stringify(ST));
+    var box = document.getElementById('code-box');
+    box.textContent = code; box.classList.toggle('on');
+    if (box.classList.contains('on') && navigator.clipboard) navigator.clipboard.writeText(code).then(function() { toast('\u2713 C\u00f3digo copiado'); }).catch(function() { toast('Copia el c\u00f3digo de arriba'); });
+  });
+  document.getElementById('restore-row').addEventListener('click', function() { document.getElementById('restore-modal').classList.add('on'); });
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+var TIMES = ['6:00', '7:00', '8:00', '9:00', '12:00', '18:00', '19:00', '20:00', '21:00'];
+var _selT = null;
+
+function openReminder() {
+  var html = '';
+  TIMES.forEach(function(t) { html += '<button class="tb' + (ST.rem === t ? ' sel' : '') + '" id="tb-' + t.replace(':', '-') + '">' + t + '</button>'; });
+  document.getElementById('tg').innerHTML = html;
+  TIMES.forEach(function(t) {
+    var el = document.getElementById('tb-' + t.replace(':', '-'));
+    if (el) { (function(time) { el.addEventListener('click', function() { _selT = time; document.querySelectorAll('.tb').forEach(function(b) { b.classList.remove('sel'); }); el.classList.add('sel'); }); })(t); }
+  });
+  document.getElementById('rem-modal').classList.add('on');
+}
+
+function closeModal(id) { var el = document.getElementById(id); if (el) el.classList.remove('on'); }
+
+function saveRem() {
+  if (!_selT) { toast('Elige una hora'); return; }
+  ST.rem = _selT; saveST(); closeModal('rem-modal');
+  toast('\u23F0 Recordatorio: ' + _selT + ' todos los d\u00edas');
+  if ('Notification' in window) Notification.requestPermission();
+}
+
+function doRestore() {
+  var code = document.getElementById('restore-code');
+  if (!code || !code.value.trim()) { toast('Pega tu c\u00f3digo primero'); return; }
+  try {
+    var p = JSON.parse(atob(code.value.trim()));
+    if (typeof p.xp !== 'number') throw new Error('invalid');
+    ST = { xp: 0, streak: 0, last: null, done: {}, mp: {}, rem: null };
+    Object.keys(p).forEach(function(k) { ST[k] = p[k]; });
+    saveST(); closeModal('restore-modal'); toast('\u2713 Progreso restaurado'); renderProfile();
+  } catch(e) { toast('\u274C C\u00f3digo inv\u00e1lido.'); }
+}
+
+function toast(msg) {
+  var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(function() { t.remove(); }, 3000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function() {
+  var saved = localStorage.getItem('aim_cu');
+  if (saved) {
+    var users = getUsers();
+    var u = users[saved];
+    if (u) { loginOK(u); return; }
+  }
+})();
+</script>
+</body>
+</html>
